@@ -46,6 +46,15 @@ float4 ELCalculateFog(float3 objectPos, float4 clipPos, float4 c)
     return c;
 }
 
+SurfaceOutputStandard ELInitSurfaceOutput(float3 objectNormal)
+{
+    SurfaceOutputStandard surfaceOutput;
+    UNITY_INITIALIZE_OUTPUT(SurfaceOutputStandard, surfaceOutput);
+    surfaceOutput.Normal = UnityObjectToWorldNormal(objectNormal);
+    surfaceOutput.Occlusion = 1.0;
+    return surfaceOutput;
+}
+
 // I wanted to write a surface shader, but it turns out you can't write to depth
 // from a surface shader. So here we're using as much as possible of the actual surface
 // shader / standard lighting code.
