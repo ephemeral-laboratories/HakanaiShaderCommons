@@ -5,6 +5,12 @@
 #include "ELRaycastBaseRays.cginc"
 #include "ELScuttledUnityLighting.cginc"
 
+// Workaround for SHADOW_COORDS being missing for shadowcaster pass 
+#if defined (SHADOWS_DEPTH) && !defined (SPOT) 
+    #define SHADOW_COORDS(idx1) unityShadowCoord2 _ShadowCoord : TEXCOORD##idx1; 
+#endif 
+
+
 ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
 {
     ELRaycastBaseFragmentInput output;
