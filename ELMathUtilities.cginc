@@ -49,4 +49,17 @@ float3 ELRotateAroundZInDegrees(float3 vertex, float degrees)
     return float3(mul(m, vertex.xy), vertex.z);
 }
 
+float2 ELPolarToCartesian(float r, float theta)
+{
+    float2 sin_cos;
+    sincos(theta, sin_cos[1], sin_cos[0]);
+    return sin_cos * r;
+}
+
+float ELMod(float x, float y)
+{
+    return x - y * floor(x / y);
+}
+
+
 #endif // EL_MATH_UTILITIES_CGINC_
