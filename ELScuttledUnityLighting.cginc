@@ -7,6 +7,7 @@
 #include "AutoLight.cginc"              // must be after `UnityPBSLighting` because Unity forgot to include it.
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardCore.cginc"
+#include "ELUnityUtilities.cginc"
 
 
 // Wraps `UNITY_TRANSFER_SHADOW` and `UNITY_LIGHT_ATTENUATION` for abusing to use in fragment shader.
