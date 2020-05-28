@@ -1,31 +1,8 @@
 #ifndef EL_RAYMARCH_BASE_CGINC
 #define EL_RAYMARCH_BASE_CGINC
 
+#include "ELRaycastBaseStructures.cginc"
 #include "ELScuttledUnityLighting.cginc"
-
-struct ELRaymarchBaseVertexInput
-{
-    float4 vertex   : POSITION;
-    float3 normal   : NORMAL;
-    float4 tangent  : TANGENT;
-    float4 color    : COLOR;
-};
-
-struct ELRaymarchBaseVertexOutput
-{
-    float4 pos              : SV_POSITION;
-    float4 grabPos          : TEXCOORD0;
-    float4 objectPos        : TEXCOORD1;
-    float3 objectNormal     : NORMAL;
-    float3 objectRayStart   : TEXCOORD2;
-    float3 objectRayDir     : TEXCOORD3;
-};
-
-struct ELRaymarchBaseFragmentOutput
-{
-    float4 color    : SV_Target;
-    float clipDepth : SV_Depth;
-};
 
 struct ELRay
 {
@@ -35,10 +12,10 @@ struct ELRay
     float3 pos;
 };
 
-ELRaymarchBaseVertexOutput ELRaymarchBaseVertex(ELRaymarchBaseVertexInput input)
+ELRaycastBaseFragmentInput ELRaymarchBaseVertex(ELRaycastBaseVertexInput input)
 {
-    ELRaymarchBaseVertexOutput output;
-    UNITY_INITIALIZE_OUTPUT(ELRaymarchBaseVertexOutput, output);
+    ELRaycastBaseFragmentInput output;
+    UNITY_INITIALIZE_OUTPUT(ELRaycastBaseFragmentInput, output);
     output.pos = UnityObjectToClipPos(input.vertex);
     output.grabPos = ComputeGrabScreenPos(output.pos);
     output.objectPos = input.vertex;
@@ -56,10 +33,10 @@ ELRaymarchBaseVertexOutput ELRaymarchBaseVertex(ELRaymarchBaseVertexInput input)
     return output;
 }
 
-ELRaymarchBaseVertexOutput ELGeometryBuildVaryings(float4 vertex)
+ELRaycastBaseFragmentInput ELGeometryBuildVaryings(float4 vertex)
 {
-    ELRaymarchBaseVertexOutput output;
-    UNITY_INITIALIZE_OUTPUT(ELRaymarchBaseVertexOutput, output);
+    ELRaycastBaseFragmentInput output;
+    UNITY_INITIALIZE_OUTPUT(ELRaycastBaseFragmentInput, output);
     output.pos = UnityObjectToClipPos(vertex);
 
     // Variables like `unity_OrthoParams` and `_WorldSpaceCameraPos` lie, but the
@@ -81,7 +58,7 @@ ELRaymarchBaseVertexOutput ELGeometryBuildVaryings(float4 vertex)
 }
 
 [maxvertexcount(24)]
-void ELGeometryCube(line ELRaymarchBaseVertexInput input[2], inout TriangleStream<ELRaymarchBaseVertexOutput> triStream)
+void ELGeometryCube(line ELRaycastBaseVertexInput input[2], inout TriangleStream<ELRaycastBaseFragmentInput> triStream)
 {
     // float4 v1 = min(input[0].vertex, input[1].vertex);
     // float4 v2 = max(input[0].vertex, input[1].vertex);
@@ -119,7 +96,7 @@ void ELGeometryCube(line ELRaymarchBaseVertexInput input[2], inout TriangleStrea
     }
 }
 
-ELRay ELGetRay(ELRaymarchBaseVertexOutput input)
+ELRay ELGetRay(ELRaycastBaseFragmentInput input)
 {
     ELRay ray;
     ray.start = input.objectRayStart;
@@ -178,14 +155,14 @@ bool ELRaymarch(ELRay ray, out float3 objectPos, out float material)
     return true;
 }
 
-void ELDecodeMaterial(ELRaymarchBaseVertexOutput input, float material, inout SurfaceOutputStandard output);
+void ELDecodeMaterial(ELRaycastBaseFragmentInput input, float material, inout SurfaceOutputStandard output);
 
-bool ELFragmentRaymarch(ELRaymarchBaseVertexOutput input, out float3 objectPos, out float material)
+bool ELFragmentRaymarch(ELRaycastBaseFragmentInput input, out float3 objectPos, out float material)
 {
     return ELRaymarch(ELGetRay(input), objectPos, material);
 }
 
-SurfaceOutputStandard ELRaymarchSurface(ELRaymarchBaseVertexOutput input, out float3 objectPos, out float3 objectNormal)
+SurfaceOutputStandard ELRaymarchSurface(ELRaycastBaseFragmentInput input, out float3 objectPos, out float3 objectNormal)
 {
     float material;
     bool hit = ELFragmentRaymarch(input, objectPos, material);
@@ -208,13 +185,13 @@ SurfaceOutputStandard ELRaymarchSurface(ELRaymarchBaseVertexOutput input, out fl
     return output;
 }
 
-ELRaymarchBaseFragmentOutput ELRaymarchFragment(ELRaymarchBaseVertexOutput input)
+ELRaycastBaseFragmentOutput ELRaymarchFragment(ELRaycastBaseFragmentInput input)
 {
     float3 objectPos;
     float3 objectNormal;
     SurfaceOutputStandard surfaceOutput = ELRaymarchSurface(input, objectPos, objectNormal);
 
-    ELRaymarchBaseFragmentOutput output;
+    ELRaycastBaseFragmentOutput output;
     output.color = ELSurfaceFragment(surfaceOutput, objectPos, objectNormal);
 
     float4 clipPos = UnityObjectToClipPos(float4(objectPos, 1.0));
@@ -223,7 +200,7 @@ ELRaymarchBaseFragmentOutput ELRaymarchFragment(ELRaymarchBaseVertexOutput input
     return output;
 }
 
-float4 ELRaymarchShadowCasterFragment(ELRaymarchBaseVertexOutput input) : SV_Target
+float4 ELRaymarchShadowCasterFragment(ELRaycastBaseFragmentInput input) : SV_Target
 {
     float3 objectPos;
     float materialUnused;
