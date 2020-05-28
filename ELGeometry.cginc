@@ -1,5 +1,5 @@
-#ifndef EL_GEOMETRY_CGINC
-#define EL_GEOMETRY_CGINC
+#ifndef EL_GEOMETRY_CGINC_
+#define EL_GEOMETRY_CGINC_
 
 #include "UnityCG.cginc"
 #include "ELRaycastBaseInputOutput.cginc"
@@ -68,4 +68,4 @@ void ELGeometryCube(line ELRaycastBaseVertexInput input[2], inout TriangleStream
     }
 }
 
-#endif
+#endif // EL_GEOMETRY_CGINC_

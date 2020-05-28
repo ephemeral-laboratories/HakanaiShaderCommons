@@ -1,5 +1,5 @@
-#ifndef EL_RAYCAST_BASE_RAYS_CGINC
-#define EL_RAYCAST_BASE_RAYS_CGINC
+#ifndef EL_RAYCAST_BASE_RAYS_CGINC_
+#define EL_RAYCAST_BASE_RAYS_CGINC_
 
 #include "ELRaycastBaseInputOutput.cginc"
 
@@ -57,4 +57,4 @@ void ELAdvanceRay(inout ELRay ray, float dt)
     ray.pos = ray.start + ray.dir * ray.t;
 }
 
-#endif
+#endif // EL_RAYCAST_BASE_RAYS_CGINC_

@@ -1,5 +1,5 @@
-#ifndef EL_UNITY_UTILITIES_CGINC
-#define EL_UNITY_UTILITIES_CGINC
+#ifndef EL_UNITY_UTILITIES_CGINC_
+#define EL_UNITY_UTILITIES_CGINC_
 
 #include "ELMathUtilities.cginc"
 
@@ -23,4 +23,4 @@ float3 ELClipToObjectPos(float4 clipPos)
     return mul(unity_WorldToObject, mul(ELMatrixInverse(UNITY_MATRIX_VP), clipPos)).xyz;
 }
 
-#endif
+#endif // EL_UNITY_UTILITIES_CGINC_

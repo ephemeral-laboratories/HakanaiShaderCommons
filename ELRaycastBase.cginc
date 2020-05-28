@@ -1,5 +1,5 @@
-#ifndef EL_RAYCAST_BASE_CGINC
-#define EL_RAYCAST_BASE_CGINC
+#ifndef EL_RAYCAST_BASE_CGINC_
+#define EL_RAYCAST_BASE_CGINC_
 
 #include "ELRaycastBaseInputOutput.cginc"
 #include "ELRaycastBaseRays.cginc"
@@ -99,4 +99,4 @@ float4 ELRaycastShadowCasterFragment(ELRaycastBaseFragmentInput input) : SV_Targ
     SHADOW_CASTER_FRAGMENT(output);
 }
 
-#endif
+#endif // EL_RAYCAST_BASE_CGINC_

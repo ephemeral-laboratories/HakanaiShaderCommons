@@ -1,5 +1,5 @@
-#ifndef EL_RAYCAST_FUNCTIONS_CGINC
-#define EL_RAYCAST_FUNCTIONS_CGINC
+#ifndef EL_RAYCAST_FUNCTIONS_CGINC_
+#define EL_RAYCAST_FUNCTIONS_CGINC_
 
 /**
  * Performs a sphere-ray intersection check.
@@ -31,4 +31,4 @@ bool ELSphereRayIntersect(float3 sphereCentre, float sphereRadius2, inout ELRay 
     }
 }
 
-#endif
+#endif // EL_RAYCAST_FUNCTIONS_CGINC_

@@ -1,5 +1,5 @@
-#ifndef EL_SCUTTLED_UNITY_LIGHTING_CGINC
-#define EL_SCUTTLED_UNITY_LIGHTING_CGINC
+#ifndef EL_SCUTTLED_UNITY_LIGHTING_CGINC_
+#define EL_SCUTTLED_UNITY_LIGHTING_CGINC_
 
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
@@ -113,7 +113,7 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
     #endif
     LightingStandard_GI(surfaceOutput, giInput, gi);
 
-#endif
+#endif // UNITY_PASS_FORWARDBASE
 
     float4 colour = LightingStandard(surfaceOutput, worldViewDir, gi);
     colour.rgb += surfaceOutput.Emission;
@@ -121,4 +121,4 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
     return colour;
 }
 
-#endif
+#endif // EL_SCUTTLED_UNITY_LIGHTING_CGINC_

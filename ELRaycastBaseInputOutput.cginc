@@ -1,5 +1,5 @@
-#ifndef EL_RAYCAST_BASE_STRUCTURES_CGINC
-#define EL_RAYCAST_BASE_STRUCTURES_CGINC
+#ifndef EL_RAYCAST_BASE_STRUCTURES_CGINC_
+#define EL_RAYCAST_BASE_STRUCTURES_CGINC_
 
 struct ELRaycastBaseVertexInput
 {
@@ -27,4 +27,4 @@ struct ELRaycastBaseFragmentOutput
     float clipDepth : SV_Depth;
 };
 
-#endif
+#endif // EL_RAYCAST_BASE_STRUCTURES_CGINC_

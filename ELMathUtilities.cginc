@@ -1,5 +1,5 @@
-#ifndef EL_MATH_UTILITIES_CGINC
-#define EL_MATH_UTILITIES_CGINC
+#ifndef EL_MATH_UTILITIES_CGINC_
+#define EL_MATH_UTILITIES_CGINC_
 
 float4x4 ELMatrixInverse(float4x4 input)
 {
@@ -49,4 +49,4 @@ float3 ELRotateAroundZInDegrees(float3 vertex, float degrees)
     return float3(mul(m, vertex.xy), vertex.z);
 }
 
-#endif
+#endif // EL_MATH_UTILITIES_CGINC_

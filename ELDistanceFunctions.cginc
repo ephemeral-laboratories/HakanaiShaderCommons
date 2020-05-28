@@ -1,5 +1,5 @@
-#ifndef EL_DISTANCE_FUNCTIONS_CGINC
-#define EL_DISTANCE_FUNCTIONS_CGINC
+#ifndef EL_DISTANCE_FUNCTIONS_CGINC_
+#define EL_DISTANCE_FUNCTIONS_CGINC_
 
 #include "UnityCG.cginc"
 
@@ -226,4 +226,4 @@ float2 pModPolar(float2 p, float repetitions)
     return result * r;
 }
 
-#endif
+#endif // EL_DISTANCE_FUNCTIONS_CGINC_

@@ -1,5 +1,5 @@
-#ifndef EL_RAYMARCH_BASE_CGINC
-#define EL_RAYMARCH_BASE_CGINC
+#ifndef EL_RAYMARCH_BASE_CGINC_
+#define EL_RAYMARCH_BASE_CGINC_
 
 #include "ELRaycastBase.cginc"
 
@@ -64,4 +64,4 @@ bool ELRaycast(ELRay ray, out float3 objectPos, out float3 objectNormal, out flo
     return hit;
 }
 
-#endif
+#endif // EL_RAYMARCH_BASE_CGINC_
