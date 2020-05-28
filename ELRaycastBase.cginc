@@ -1,52 +1,9 @@
 #ifndef EL_RAYCAST_BASE_CGINC
 #define EL_RAYCAST_BASE_CGINC
 
-#include "ELRaycastBaseStructures.cginc"
+#include "ELRaycastBaseInputOutput.cginc"
+#include "ELRaycastBaseRays.cginc"
 #include "ELScuttledUnityLighting.cginc"
-
-
-/**
- * Structure holding information about a ray.
- */
-struct ELRay
-{
-    /**
-     * Origin of the ray.
-     */
-    float3 start;
-
-    /**
-     * Direction of the ray
-     */
-    float3 dir;
-
-    /**
-     * Distance from the origin of the tip of the ray, in units of the length of `dir`.
-     */
-    float t;
-
-    /**
-     * Position of the tip of the ray.
-     */
-    float3 pos;
-};
-
-ELRay ELGetRay(ELRaycastBaseFragmentInput input)
-{
-    ELRay ray;
-    ray.start = input.objectRayStart;
-    ray.dir = normalize(input.objectRayDir);
-	ray.t = 0.0;
-    ray.pos = ray.start;
-    return ray;
-}
-
-void ELAdvanceRay(inout ELRay ray, float dt)
-{
-    ray.t += dt;
-    ray.pos = ray.start + ray.dir * ray.t;
-}
-
 
 ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
 {
