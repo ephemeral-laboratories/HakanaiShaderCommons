@@ -1,6 +1,12 @@
 #ifndef EL_MATH_UTILITIES_CGINC_
 #define EL_MATH_UTILITIES_CGINC_
 
+/**
+ * Performs a matrix inverse.
+ *
+ * @param input the input matrix.
+ * @return the inverted matrix. If the matrix is not invertible the behaviour is undefined.
+ */
 float4x4 ELMatrixInverse(float4x4 input)
 {
     #define minor(a, b, c) determinant(float3x3(input.a, input.b, input.c))
@@ -30,36 +36,79 @@ float4x4 ELMatrixInverse(float4x4 input)
    return transpose(cofactors) / determinant(input);
 }
 
-float2x2 ELRotationMatrix(float radians)
+/**
+ * Creates a 2D rotation matrix rotating around the origin by the specified amount.
+ *
+ * @param angle the angle in radians.
+ * @return the matrix.
+ */
+float2x2 ELRotationMatrix(float angle)
 {
     float sina, cosa;
-    sincos(radians, sina, cosa);
+    sincos(angle, sina, cosa);
     return float2x2(cosa, -sina, sina, cosa);
 }
 
-float3 ELRotateAroundYInDegrees(float3 vertex, float degrees)
+/**
+ * Creates a 3D rotation matrix rotating around the X axis by the specified amount.
+ *
+ * @param angle the angle in radians.
+ * @return the matrix.
+ */
+float3 ELRotateAroundXInDegrees(float3 vertex, float angle)
 {
-    float2x2 m = ELRotationMatrix(radians(degrees));
+    float2x2 m = ELRotationMatrix(radians(angle));
+    return float3(vertex.x, mul(m, vertex.yz));
+}
+
+/**
+ * Creates a 3D rotation matrix rotating around the Y axis by the specified amount.
+ *
+ * @param angle the angle in radians.
+ * @return the matrix.
+ */
+float3 ELRotateAroundYInDegrees(float3 vertex, float angle)
+{
+    float2x2 m = ELRotationMatrix(radians(angle));
     return float3(mul(m, vertex.xz), vertex.y).xzy;
 }
 
-float3 ELRotateAroundZInDegrees(float3 vertex, float degrees)
+/**
+ * Creates a 3D rotation matrix rotating around the Z axis by the specified amount.
+ *
+ * @param angle the angle in radians.
+ * @return the matrix.
+ */
+float3 ELRotateAroundZInDegrees(float3 vertex, float angle)
 {
-    float2x2 m = ELRotationMatrix(radians(degrees));
+    float2x2 m = ELRotationMatrix(radians(angle));
     return float3(mul(m, vertex.xy), vertex.z);
 }
 
-float2 ELPolarToCartesian(float r, float theta)
+/**
+ * Converts polar coordinates to Cartesian coordinates.
+ *
+ * @param radius the radius.
+ * @param angle the angle.
+ * @return the X-Y coordinates.
+ */
+float2 ELPolarToCartesian(float radius, float angle)
 {
     float2 sin_cos;
-    sincos(theta, sin_cos[1], sin_cos[0]);
-    return sin_cos * r;
+    sincos(angle, sin_cos[1], sin_cos[0]);
+    return sin_cos * radius;
 }
 
-float ELMod(float x, float y)
+/**
+ * Corrected modulus operator.
+ *
+ * @param dividend the dividend.
+ * @param divisor the divisor.
+ * @return the non-negative remainder `<` the divisor.
+ */
+float ELMod(float dividend, float divisor)
 {
-    return x - y * floor(x / y);
+    return dividend - divisor * floor(dividend / divisor);
 }
-
 
 #endif // EL_MATH_UTILITIES_CGINC_

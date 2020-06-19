@@ -5,45 +5,101 @@
 #include "ELRaycastBaseRays.cginc"
 #include "ELScuttledUnityLighting.cginc"
 
-// Workaround for SHADOW_COORDS being missing for shadowcaster pass 
+// Workaround for `SHADOW_COORDS` being missing for shadowcaster pass 
 #if defined (SHADOWS_DEPTH) && !defined (SPOT) 
     #define SHADOW_COORDS(idx1) unityShadowCoord2 _ShadowCoord : TEXCOORD##idx1; 
 #endif 
 
-
+/**
+ * Vertex shader.
+ *
+ * @param input the vertex input structure.
+ * @return the structure for input to the fragment shader.
+ */
 ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
 {
     ELRaycastBaseFragmentInput output;
     UNITY_INITIALIZE_OUTPUT(ELRaycastBaseFragmentInput, output);
-    output.pos = UnityObjectToClipPos(input.vertex);
-    output.grabPos = ComputeGrabScreenPos(output.pos);
-    output.objectPos = input.vertex;
-    output.objectNormal = input.normal;
+    output.clipPos = UnityObjectToClipPos(input.objectPos);
+    output.grabPos = ComputeGrabScreenPos(output.clipPos);
+    output.objectPos = input.objectPos;
+    output.objectNormal = input.objectNormal;
     output.color = input.color;
+
+    // Determining whether the projection is isometric.
+    // Variables like `unity_OrthoParams` and `_WorldSpaceCameraPos` lie about
+    // the position of the camera, but the transform matrices don't lie. Can't lie.
+    // so we can just use those for everything.
     if (UNITY_MATRIX_P[3][3] == 1.0)
     {
-        output.objectRayDir = ELWorldToObjectNormal(-UNITY_MATRIX_V[2].xyz);
-        output.objectRayStart = input.vertex - normalize(output.objectRayDir);
+        // Orthographic case - `-UNITY_MATRIX_V[2]` is camera forward vector
+        output.objectRayDirection = ELWorldToObjectNormal(-UNITY_MATRIX_V[2].xyz);
+        output.objectRayOrigin = input.objectPos - normalize(output.objectRayDirection);
     }
     else
     {
-        output.objectRayStart = ELWorldToObjectPos(UNITY_MATRIX_I_V._m03_m13_m23);
-        output.objectRayDir = input.vertex - output.objectRayStart;
+        // Perspective case - `UNITY_MATRIX_I_V._m03_m13_m23` is camera position
+        output.objectRayOrigin = ELWorldToObjectPos(UNITY_MATRIX_I_V._m03_m13_m23);
+        output.objectRayDirection = input.objectPos - output.objectRayOrigin;
     }
+
     return output;
 }
 
-
+/**
+ * _Pseudo-abstract method, to be implemented by consumers._
+ *
+ * This method is called to cast the ray into the scene.
+ * The scene must populate the output parameters if the ray hits an object in the scene.
+ *
+ * @param ray the ray cast.
+ * @param objectPos [out] the position in object space at which the ray hit, if it hit.
+ * @param objectNormal [out] the normal of the surface at the position the ray hit, in object space, if it hit.
+ * @param material [out] a floating point value in which to store differentiating material information,
+ *        later used in {@link ELDecodeMaterial}.
+ * @return {@code true} if the ray hit. {@code false} otherwise.
+ */
 bool ELRaycast(ELRay ray, out float3 objectPos, out float3 objectNormal, out float material);
 
-
+/**
+ * _Pseudo-abstract method, to be implemented by consumers._
+ *
+ * This method is called to convert a simple floating point value returned from {@link ELRaycast}
+ * into a {@link SurfaceOutputStandard} structure.
+ *
+ * @param input the fragment input structure.
+ * @param material [out] a floating point value returned from {@link ELRaycast} used to store
+ *        differentiating material information.
+ */
 void ELDecodeMaterial(ELRaycastBaseFragmentInput input, float material, inout SurfaceOutputStandard output);
 
+/**
+ * Given a ray entering the object, figure out what it hits and where.
+ *
+ * @param input the fragment input structure.
+ * @param objectPos [out] the position the ray hit, in object space.
+ * @param objectNormal [out] the normal of the surface at the position the ray hit, in object space.
+ * @param material [out] a floating point value in which to store differentiating material information,
+ *        later used in {@link ELDecodeMaterial}.
+ * @return {@code true} if the ray hit, {@code false} otherwise.
+ */
 bool ELFragmentRaycast(ELRaycastBaseFragmentInput input, out float3 objectPos, out float3 objectNormal, out float material)
 {
     return ELRaycast(ELGetRay(input), objectPos, objectNormal, material);
 }
 
+/**
+ * Given a ray entering the object, figure out what it hits and return the surface properties.
+ *
+ * This is split into two parts.
+ * In the first part, we call {@link ELRaycastSurface} to get where and what the ray hit.
+ * In the second part, we decode the value returned for the material and use it to set up the surface parameters.
+ *
+ * @param input the fragment input structure.
+ * @param objectPos [out] the position the ray hit, in object space.
+ * @param objectNormal [out] the normal of the surface at the position the ray hit, in object space.
+ * @return a 
+ */
 SurfaceOutputStandard ELRaycastSurface(ELRaycastBaseFragmentInput input, out float3 objectPos, out float3 objectNormal)
 {
     float material;
@@ -66,6 +122,12 @@ SurfaceOutputStandard ELRaycastSurface(ELRaycastBaseFragmentInput input, out flo
     return output;
 }
 
+/**
+ * Fragment shader.
+ *
+ * @param input the fragment input structure.
+ * @return the fragment output structure.
+ */
 ELRaycastBaseFragmentOutput ELRaycastFragment(ELRaycastBaseFragmentInput input)
 {
     float3 objectPos;
@@ -81,6 +143,12 @@ ELRaycastBaseFragmentOutput ELRaycastFragment(ELRaycastBaseFragmentInput input)
     return output;
 }
 
+/**
+ * Fragment shader for the shadow caster pass.
+ *
+ * @param input the fragment input structure.
+ * @return the fragment output structure.
+ */
 float4 ELRaycastShadowCasterFragment(ELRaycastBaseFragmentInput input) : SV_Target
 {
     float3 objectPos;

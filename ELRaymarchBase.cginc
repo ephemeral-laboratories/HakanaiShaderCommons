@@ -24,8 +24,8 @@ bool ELRaymarch(ELRay ray, out float3 objectPos, out float material)
 
     for (uint i = 0; i < MAX_STEPS; i++)
     {
-        mapResult = ELMap(ray.pos);
-        objectPos = ray.pos;
+        mapResult = ELMap(ray.position);
+        objectPos = ray.position;
 
         if (mapResult.x > MAX_DISTANCE)
         {
