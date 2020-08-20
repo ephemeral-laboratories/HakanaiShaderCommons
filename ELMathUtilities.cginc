@@ -112,11 +112,11 @@ float ELMod(float dividend, float divisor)
 {
     return dividend - divisor * floor(dividend / divisor);
 }
-float ELMod(float2 dividend, float2 divisor)
+float2 ELMod(float2 dividend, float2 divisor)
 {
     return dividend - divisor * floor(dividend / divisor);
 }
-float ELMod(float3 dividend, float3 divisor)
+float3 ELMod(float3 dividend, float3 divisor)
 {
     return dividend - divisor * floor(dividend / divisor);
 }

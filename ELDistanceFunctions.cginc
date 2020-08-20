@@ -29,14 +29,14 @@ float sdSphere(float3 pos, float radius)
 }
 
 // Circle laid down on X-Z plane
-float sdCircle(float3 pos, float r)
+float sdCircle(float3 pos, float radius)
 {
-    float l = length(pos.xz) - r;
+    float l = length(pos.xz) - radius;
     return length(float2(pos.y, l));
 }
 
 // Circle in 2D
-float sdCircle2(float2 pos, float radius)
+float sdCircle(float2 pos, float radius)
 {
     return length(pos) - radius;
 }
