@@ -4,8 +4,14 @@
 #include "UnityCG.cginc"
 #include "ELMathUtilities.cginc"
 
-// Adapted from: http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+// Adapted from:
+// - http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+// - http://mercury.sexy/hg_sdf
 
+float dot2(float2 v)
+{
+    return dot(v, v);
+}
 float dot2(float3 v)
 {
     return dot(v, v);
@@ -22,6 +28,61 @@ float sdSphere(float3 pos, float radius)
     return length(pos) - radius;
 }
 
+// Circle laid down on X-Z plane
+float sdCircle(float3 pos, float r)
+{
+    float l = length(pos.xz) - r;
+    return length(float2(pos.y, l));
+}
+
+// Circle in 2D
+float sdCircle2(float2 pos, float radius)
+{
+    return length(pos) - radius;
+}
+
+float sdEllipse(float2 pos, float2 ab)
+{
+    pos = abs(pos);
+    if (pos.x > pos.y)
+    {
+        pos = pos.yx;
+        ab = ab.yx;
+    }
+    float l = ab.y * ab.y - ab.x * ab.x;
+    float m = ab.x * pos.x / l;
+    float m2 = m * m; 
+    float n = ab.y * pos.y / l;
+    float n2 = n * n; 
+    float c = (m2 + n2 - 1.0) / 3.0;
+    float c3 = c * c * c;
+    float q = c3 + m2 * n2 * 2.0;
+    float d = c3 + m2 * n2;
+    float g = m + m * n2;
+    float co;
+    if (d < 0.0)
+    {
+        float h = acos(q / c3) / 3.0;
+        float s = cos(h);
+        float t = sin(h) * sqrt(3.0);
+        float rx = sqrt(-c * (s + t + 2.0) + m2);
+        float ry = sqrt(-c * (s - t + 2.0) + m2);
+        co = (ry + sign(l) * rx + abs(g) / (rx * ry) - m) / 2.0;
+    }
+    else
+    {
+        float h = 2.0 * m * n * sqrt(d);
+        float s = sign(q + h) * pow(abs(q + h), 1.0 / 3.0);
+        float u = sign(q - h) * pow(abs(q - h), 1.0 / 3.0);
+        float rx = -s - u - c * 4.0 + 2.0 * m2;
+        float ry = (s - u) * sqrt(3.0);
+        float rm = sqrt(rx * rx + ry * ry);
+        co = (ry / sqrt(rm - rx) + 2.0 * g / rm - m) / 2.0;
+    }
+    float2 r = ab * float2(co, sqrt(1.0 - co * co));
+    return length(r - pos) * sign(pos.y - r.y);
+}
+
 // Box
 // box: size of box in x/y/z
 float sdBox(float3 pos, float3 box)
@@ -30,10 +91,31 @@ float sdBox(float3 pos, float3 box)
     return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
 }
 
+// Box (cheaper - distance to corners is overestimated)
+float sdBoxCheap(float3 pos, float3 box)
+{
+    float3 d = abs(pos) - box;
+	return max(d.x, max(d.y, d.z));
+}
+
 // Round Box
 float sdRoundBox(float3 pos, float3 box, float radius)
 {
     return sdBox(pos, box) - radius;
+}
+
+// 2D Box
+float sdBox2(float2 pos, float2 box)
+{
+    float2 d = abs(pos) - box;
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
+// 2D Box (cheaper - distance to corners is overestimated)
+float fBox2Cheap(float2 pos, float2 box)
+{
+    float2 d = abs(pos) - box;
+	return max(d.x, d.y);
 }
 
 // Torus
@@ -169,12 +251,22 @@ float sdTriPrism(float3 pos, float2 h)
     return max(q.z - h.y, max(q.x * 0.866025 + pos.y * 0.5, -pos.y) - h.x * 0.5);
 }
 
+float sdLineSegment(float2 pos, float2 a, float2 b)
+{
+	float2 ab = b - a;
+	float t = clamp(dot(pos - a, ab) / dot(ab, ab), 0.0, 1.0);
+	return length((ab * t + a) - pos);
+}
+float sdLineSegment(float3 pos, float3 a, float3 b)
+{
+	float3 ab = b - a;
+	float t = clamp(dot(pos - a, ab) / dot(ab, ab), 0.0, 1.0);
+	return length((ab * t + a) - pos);
+}
+
 float sdCapsule(float3 pos, float3 a, float3 b, float r)
 {
-    float3 pa = pos - a;
-    float3 ba = b - a;
-    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    return length(pa - ba * h) - r;
+    return sdLineSegment(pos, a, b) - r;
 }
 
 float sdEllipsoid(in float3 pos, in float3 r)
@@ -192,39 +284,118 @@ float sdSolidAngle(float3 pos, float2 c, float ra)
     return max(l, m * sign(c.y * q.x - c.x * q.y));
 }
 
-// Octahedron
-float sdOctahedron(float3 pos, float s)
+
+//
+// "Generalized Distance Functions" by Akleman and Chen.
+// see the Paper at https://www.viz.tamu.edu/faculty/ergun/research/implicitmodeling/papers/sm99.pdf
+//
+// This set of constants is used to construct a large variety of geometric primitives.
+// Indices are shifted by 1 compared to the paper because we start counting at Zero.
+// Some of those are slow whenever a driver decides to not unroll the loop,
+// which seems to happen for fIcosahedron und fTruncatedIcosahedron on nvidia 350.12 at least.
+// Specialized implementations can well be faster in all cases.
+//
+
+static const float3 GDFVectors[19] = {
+	normalize(float3(1.0, 0.0, 0.0)),
+	normalize(float3(0.0, 1.0, 0.0)),
+	normalize(float3(0.0, 0.0, 1.0)),
+
+	normalize(float3(1.0, 1.0, 1.0)),
+	normalize(float3(-1.0, 1.0, 1.0)),
+	normalize(float3(1.0, -1.0, 1.0)),
+	normalize(float3(1.0, 1.0, -1.0)),
+
+	normalize(float3(0.0, 1.0, EL_PHI + 1.0)),
+	normalize(float3(0.0, -1.0, EL_PHI + 1.0)),
+	normalize(float3(EL_PHI + 1.0, 0.0, 1.0)),
+	normalize(float3(-EL_PHI - 1.0, 0.0, 1.0)),
+	normalize(float3(1.0, EL_PHI + 1.0, 0.0)),
+	normalize(float3(-1.0, EL_PHI + 1.0, 0.0)),
+
+	normalize(float3(0.0, EL_PHI, 1.0)),
+	normalize(float3(0.0, -EL_PHI, 1.0)),
+	normalize(float3(1.0, 0.0, EL_PHI)),
+	normalize(float3(-1.0, 0.0, EL_PHI)),
+	normalize(float3(EL_PHI, 1.0, 0.0)),
+	normalize(float3(-EL_PHI, 1.0, 0.0))
+};
+
+// Version with variable exponent.
+// This is slow and does not produce correct distances, but allows for bulging of objects.
+float sdGDF(float3 p, float r, float e, int begin, int end)
 {
-    pos = abs(pos);
-    float m = pos.x + pos.y + pos.z - s;
-    float3 q;
-    if (3.0 * pos.x < m)
+    float d = 0.0;
+    for (int i = begin; i <= end; i++)
     {
-        q = pos.xyz;
+        d += pow(abs(dot(p, GDFVectors[i])), e);
     }
-    else if (3.0 * pos.y < m)
-    {
-        q = pos.yzx;
-    }
-    else if (3.0 * pos.z < m)
-    {
-        q = pos.zxy;
-    }
-    else
-    {
-        return m * 0.57735027;
-    }
-    
-    float k = clamp(0.5 * (q.z - q.y + s), 0.0, s); 
-    return length(float3(q.x, q.y - s + k, q.z - k)); 
+    return pow(d, 1.0 / e) - r;
 }
 
-// Octahedron Bound (not exact)
-float sdOctahedronBound(float3 pos, float s)
+// Version with without exponent, creates objects with sharp edges and flat faces
+float sdGDF(float3 p, float r, int begin, int end)
 {
-    pos = abs(pos);
-    return (pos.x + pos.y + pos.z - s) * 0.57735027;
+    float d = 0.0;
+    for (int i = begin; i <= end; i++)
+    {
+        d = max(d, abs(dot(p, GDFVectors[i])));
+    }
+    return d - r;
 }
+
+// Primitives follow:
+
+float sdOctahedron(float3 p, float r, float e)
+{
+    return sdGDF(p, r, e, 3, 6);
+}
+
+float sdDodecahedron(float3 p, float r, float e)
+{
+    return sdGDF(p, r, e, 13, 18);
+}
+
+float sdIcosahedron(float3 p, float r, float e)
+{
+    return sdGDF(p, r, e, 3, 12);
+}
+
+float sdTruncatedOctahedron(float3 p, float r, float e)
+{
+    return sdGDF(p, r, e, 0, 6);
+}
+
+float sdTruncatedIcosahedron(float3 p, float r, float e)
+{
+    return sdGDF(p, r, e, 3, 18);
+}
+
+float sdOctahedron(float3 p, float r)
+{
+    return sdGDF(p, r, 3, 6);
+}
+
+float sdDodecahedron(float3 p, float r)
+{
+    return sdGDF(p, r, 13, 18);
+}
+
+float sdIcosahedron(float3 p, float r)
+{
+    return sdGDF(p, r, 3, 12);
+}
+
+float sdTruncatedOctahedron(float3 p, float r)
+{
+    return sdGDF(p, r, 0, 6);
+}
+
+float sdTruncatedIcosahedron(float3 p, float r)
+{
+    return sdGDF(p, r, 3, 18);
+}
+
 
 // Tetrahedron
 float sdTetrahedron(float3 pos, float h)
@@ -332,6 +503,46 @@ float sdArc(float3 pos, float arc_r, float arc_theta, float line_r)
     return length(float2(sdArc(pos.xy, arc_r, arc_theta), pos.z)) - line_r;
 }
 
+// Bezier curve
+float sdBezier(float2 pos, float2 A, float2 B, float2 C)
+{    
+    float2 a = B - A;
+    float2 b = A - 2.0 * B + C;
+    float2 c = a * 2.0;
+    float2 d = A - pos;
+    float kk = 1.0 / dot(b, b);
+    float kx = kk * dot(a, b);
+    float ky = kk * (2.0 * dot(a, a) + dot(d, b)) / 3.0;
+    float kz = kk * dot(d, a);
+    float res = 0.0;
+    float p = ky - kx * kx;
+    float p3 = p * p * p;
+    float q = kx * (2.0 * kx * kx - 3.0 * ky) + kz;
+    float h = q * q + 4.0 * p3;
+    if (h >= 0.0)
+    {
+        h = sqrt(h);
+        float2 x = (float2(h, -h) - q) / 2.0;
+        float2 uv = sign(x) * pow(abs(x), 1.0 / 3.0);
+        float t = clamp(uv.x + uv.y - kx, 0.0, 1.0 );
+        res = dot2(d + (c + b * t) * t);
+    }
+    else
+    {
+        float z = sqrt(-p);
+        float v = acos(q / (p * z * 2.0)) / 3.0;
+        float m = cos(v);
+        float n = sin(v) * 1.732050808; // sqrt(3)
+        float3  t = clamp(float3(m + m, -n - m, n - m) * z - kx, 0.0, 1.0);
+        res = min(dot2(d + (c + b * t.x) * t.x),
+                  dot2(d + (c + b * t.y) * t.y));
+        // the third root cannot be the closest
+        // res = min(res, dot2(d + (c + b * t.z) * t.z));
+    }
+    return sqrt( res );
+}
+
+
 // BOOLEAN OPERATIONS //
 // Apply these operations to multiple "primitive" distance functions to create complex shapes.
 
@@ -339,6 +550,10 @@ float sdArc(float3 pos, float arc_r, float arc_theta, float line_r)
 float opU(float d1, float d2)
 {
     return min(d1, d2);
+}
+float opU(float d1, float d2, float d3)
+{
+    return min(d1, min(d2, d3));
 }
 
 // Union (with extra data)
@@ -387,14 +602,132 @@ float2 opI(float2 d1, float2 d2)
     return (d1.x > d2.x) ? d1 : d2;
 }
 
+void pRotate(inout float2 pos, float theta)
+{
+	pos = cos(theta) * pos + sin(theta) * float2(pos.y, -pos.x);
+}
+
+void pRotateEighth(inout float2 pos)
+{
+	pos = (pos + float2(pos.y, -pos.x)) * sqrt(0.5);
+}
+
+void pRotateQuarter(inout float2 pos)
+{
+	pos = float2(pos.y, -pos.x);
+}
+
+void pRotateBackQuarter(inout float2 pos)
+{
+	pos = float2(-pos.y, pos.x);
+}
+
+void pRotateHalf(inout float2 pos)
+{
+    pos = -pos;
+}
+
 /* I wish.
 
-float opScale(float3 pos, float scale, sdf3d primitive)
+float pScale(float3 pos, float scale, sdf3d primitive)
 {
     return primitive(pos / scale) * scale;
 }
 
 */
+
+// Repeat space along one axis. Use like this to repeat along the x axis:
+// <float cell = pMod1(p.x,5);> - using the return value is optional.
+float pMod1(inout float pos, float size)
+{
+    float halfsize = size * 0.5;
+    float c = floor((pos + halfsize) / size);
+    pos = ELMod(pos + halfsize, size) - halfsize;
+    return c;
+}
+
+// Same, but mirror every second cell so they match at the boundaries
+float pModMirror1(inout float pos, float size)
+{
+    float halfsize = size * 0.5;
+    float c = floor((pos + halfsize)/size);
+    pos = ELMod(pos + halfsize, size) - halfsize;
+    pos *= ELMod(c, 2.0) * 2.0 - 1.0;
+    return c;
+}
+
+// Repeat the domain only in positive direction. Everything in the negative half-space is unchanged.
+float pModSingle1(inout float pos, float size)
+{
+    float halfsize = size * 0.5;
+    float c = floor((pos + halfsize) / size);
+    if (pos >= 0)
+    {
+        pos = ELMod(pos + halfsize, size) - halfsize;
+    }
+    return c;
+}
+
+// Repeat only a few times: from indices <start> to <stop> (similar to above, but more flexible)
+float pModInterval1(inout float pos, float size, float start, float stop)
+{
+    float halfsize = size * 0.5;
+    float c = floor((pos + halfsize) / size);
+    pos = ELMod(pos + halfsize, size) - halfsize;
+    if (c > stop) // yes, this might not be the best thing numerically.
+    {
+        pos += size * (c - stop);
+        c = stop;
+    }
+    if (c < start)
+    {
+        pos += size * (c - start);
+        c = start;
+    }
+    return c;
+}
+
+// Repeat space in two dimensions
+float2 pMod2(inout float2 pos, float2 size)
+{
+    float halfsize = size * 0.5;
+    float2 c = floor((pos + halfsize) / size);
+    pos = ELMod(pos + halfsize, size) - halfsize;
+    return c;
+}
+
+// Same, but mirror every second cell so all boundaries match
+float2 pModMirror2(inout float2 pos, float2 size)
+{
+    float2 halfsize = size * 0.5;
+    float2 c = floor((pos + halfsize) / size);
+    pos = ELMod(pos + halfsize, size) - halfsize;
+    pos *= ELMod(c, float2(2.0, 2.0)) * 2.0 - float2(1.0, 1.0);
+    return c;
+}
+
+// Same, but mirror every second cell at the diagonal as well
+float2 pModGrid2(inout float2 pos, float2 size)
+{
+    float2 halfsize = size * 0.5;
+    float2 c = floor((pos + halfsize)/size);
+    pos = ELMod(pos + halfsize, size) - halfsize;
+    pos *= ELMod(c, float2(2.0, 2.0)) * 2.0 - float2(1.0, 1.0);
+    pos -= halfsize;
+    if (pos.x > pos.y)
+    {
+        pos.xy = pos.yx;
+    }
+    return floor(c * 0.5);
+}
+
+// Repeat in three dimensions
+float3 pMod3(inout float3 pos, float3 size) {
+    float3 halfsize = size * 0.5;
+	float3 c = floor((pos + halfsize) / size);
+	pos = ELMod(pos + halfsize, size) - halfsize;
+	return c;
+}
 
 float2 pModRotate(float2 pos, float theta)
 {

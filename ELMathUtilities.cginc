@@ -1,6 +1,8 @@
 #ifndef EL_MATH_UTILITIES_CGINC_
 #define EL_MATH_UTILITIES_CGINC_
 
+#define EL_PHI (sqrt(5.0) * 0.5 + 0.5)
+
 /**
  * Performs a matrix inverse.
  *
@@ -107,6 +109,14 @@ float2 ELPolarToCartesian(float radius, float angle)
  * @return the non-negative remainder `<` the divisor.
  */
 float ELMod(float dividend, float divisor)
+{
+    return dividend - divisor * floor(dividend / divisor);
+}
+float ELMod(float2 dividend, float2 divisor)
+{
+    return dividend - divisor * floor(dividend / divisor);
+}
+float ELMod(float3 dividend, float3 divisor)
 {
     return dividend - divisor * floor(dividend / divisor);
 }

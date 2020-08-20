@@ -31,6 +31,46 @@ bool ELSphereRayIntersect(float3 sphereCentre, float sphereRadius2, inout ELRay 
     }
 }
 
+/**
+ * Performs an axis-aligned bounding box (AABB)-ray intersection check.
+ * Coordinates are in object space.
+ *
+ * @param boxMin the minimum X-Y-Z coordinates of the box.
+ * @param boxMax the maximum X-Y-Z coordinates of the box.
+ * @param ray [inout] the ray being cast. The solution is placed into `ray.reach` if found.
+ * @param maxReach [out] receives the maximum reach value for which the ray is still inside the box.
+ * @return `true` if an intersection is found, `false` otherwise.
+ */
+bool ELBoxRayIntersect(float3 boxMin, float3 boxMax, inout ELRay ray, out float maxReach)
+{
+    float3 invDir = rcp(ray.direction);
+    float3 tMin = (boxMin - ray.origin) * invDir;
+    float3 tMax = (boxMax - ray.origin) * invDir;
+    float3 t1 = min(tMin, tMax);
+    float3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    if (tNear > tFar)
+    {
+        // Doesn't hit the box.
+        maxReach = 0.0;
+        return false;
+    }
+    else if (tNear > 0.0)
+    {
+        // Outside box, start advance from box
+        ELAdvanceRay(ray, tNear);
+        maxReach = tFar;
+        return true;
+    }
+    else
+    {
+        // Inside box, start advance from camera
+        maxReach = tFar;
+        return true;
+    }
+}
+
 /* TODO: More primitives */
 
 #endif // EL_RAYCAST_FUNCTIONS_CGINC_
