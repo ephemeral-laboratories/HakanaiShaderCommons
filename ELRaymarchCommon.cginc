@@ -73,6 +73,10 @@ bool ELRaymarch(ELRay ray, out float3 objectPos, out float material)
 {
     float2 mapResult;
 
+    // to silence warnings about not initialising output values :|
+    objectPos = float3(0.0, 0.0, 0.0);
+    material = 0.0;
+
     float3 boxMin;
     float3 boxMax;
     ELBoundingBox(boxMin, boxMax);

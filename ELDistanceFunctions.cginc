@@ -22,17 +22,20 @@ float dot2(float3 v)
 // The result is negative if you are inside the shape.  All shapes are centered about the origin, so you may need to
 // transform your input point to account for translation or rotation
 
+// This one's a bit of a tautology but I thought it made sense to have it for completeness.
+float udPoint(float2 pos)
+{
+    return length(pos);
+}
+float udPoint(float3 pos)
+{
+    return length(pos);
+}
+
 // Sphere
 float sdSphere(float3 pos, float radius)
 {
     return length(pos) - radius;
-}
-
-// Circle laid down on X-Z plane
-float sdCircle(float3 pos, float radius)
-{
-    float l = length(pos.xz) - radius;
-    return length(float2(pos.y, l));
 }
 
 // Circle in 2D
@@ -41,6 +44,14 @@ float sdCircle(float2 pos, float radius)
     return length(pos) - radius;
 }
 
+// Circle laid down on X-Z plane
+float udCircle(float3 pos, float radius)
+{
+    float l = sdCircle(pos.xz, radius);
+    return length(float2(pos.y, l));
+}
+
+// Ellipse in 2D
 float sdEllipse(float2 pos, float2 ab)
 {
     pos = abs(pos);
@@ -251,13 +262,13 @@ float sdTriPrism(float3 pos, float2 h)
     return max(q.z - h.y, max(q.x * 0.866025 + pos.y * 0.5, -pos.y) - h.x * 0.5);
 }
 
-float sdLineSegment(float2 pos, float2 a, float2 b)
+float udLineSegment(float2 pos, float2 a, float2 b)
 {
 	float2 ab = b - a;
 	float t = clamp(dot(pos - a, ab) / dot(ab, ab), 0.0, 1.0);
 	return length((ab * t + a) - pos);
 }
-float sdLineSegment(float3 pos, float3 a, float3 b)
+float udLineSegment(float3 pos, float3 a, float3 b)
 {
 	float3 ab = b - a;
 	float t = clamp(dot(pos - a, ab) / dot(ab, ab), 0.0, 1.0);
@@ -266,7 +277,7 @@ float sdLineSegment(float3 pos, float3 a, float3 b)
 
 float sdCapsule(float3 pos, float3 a, float3 b, float r)
 {
-    return sdLineSegment(pos, a, b) - r;
+    return udLineSegment(pos, a, b) - r;
 }
 
 float sdEllipsoid(in float3 pos, in float3 r)
@@ -471,7 +482,7 @@ float udQuad(float3 pos, float3 a, float3 b, float3 c, float3 d)
 
 // Distance from a point in 2D space to an arc starting at arc_r on the X axis
 // and rotating through arc_theta in the positive direction.
-float sdArc(float2 pos, float arc_r, float arc_theta)
+float udArc(float2 pos, float arc_r, float arc_theta)
 {
     float p_theta = atan2(pos.y, pos.x);
     if (p_theta < 0.0)
@@ -498,13 +509,13 @@ float sdArc(float2 pos, float arc_r, float arc_theta)
 // and rotating through arc_theta in the positive direction on the Y axis.
 // The thickness of the line can be provided as well at the moment,
 // since it ended up commonly used at the caller anyway.
-float sdArc(float3 pos, float arc_r, float arc_theta, float line_r)
+float udArc(float3 pos, float arc_r, float arc_theta, float line_r)
 {
-    return length(float2(sdArc(pos.xy, arc_r, arc_theta), pos.z)) - line_r;
+    return length(float2(udArc(pos.xy, arc_r, arc_theta), pos.z)) - line_r;
 }
 
 // Bezier curve
-float sdBezier(float2 pos, float2 A, float2 B, float2 C)
+float udBezier(float2 pos, float2 A, float2 B, float2 C)
 {    
     float2 a = B - A;
     float2 b = A - 2.0 * B + C;
@@ -539,7 +550,7 @@ float sdBezier(float2 pos, float2 A, float2 B, float2 C)
         // the third root cannot be the closest
         // res = min(res, dot2(d + (c + b * t.z) * t.z));
     }
-    return sqrt( res );
+    return sqrt(res);
 }
 
 
