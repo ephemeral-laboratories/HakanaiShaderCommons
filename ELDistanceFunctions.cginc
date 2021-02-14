@@ -430,6 +430,30 @@ float sdTetrahedron(float3 pos, float h)
     return sqrt((d2 + q.z * q.z) / m2) * sign(max(q.z, -pos.y));
 }
 
+
+// by pema based off of https://swiftcoder.wordpress.com/2010/06/21/logarithmic-spiral-distance-field/
+float sdSpiral(float3 p, float thickness, float height, float a, float b, float offset)
+{
+    const float e = 2.7182;
+
+    // calculate the target radius and theta
+    float r = sqrt(p.x * p.x + p.y * p.y);
+    float t = atan2(p.y, p.x) + offset;
+
+    // calculate the floating point approximation for n
+    float n = (log(r / a) / b - t) / UNITY_TWO_PI;
+
+    // find the two possible radii for the closest point
+    float r1 = a * exp(b * (t + UNITY_TWO_PI * ceil(n)));
+    float r2 = a * exp(b * (t + UNITY_TWO_PI * floor(n)));
+    
+    // return the minimum distance to the target point
+    float dist = min(abs(r1 - r), abs(r - r2));
+
+    return max(dist / thickness, abs(p.z) - height);
+}
+
+
 float udTriangle(float3 pos, float3 a, float3 b, float3 c)
 {
     float3 ba = b - a;
