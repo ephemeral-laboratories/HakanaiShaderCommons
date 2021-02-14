@@ -21,7 +21,4 @@ jobs:
           unity-version: 2018.4.20f1
 
       - name: Run a one-line script 1
-        run: which UnityShaderCompiler
-
-      - name: Run a one-line script 2
-        run: find / -name UnityShaderCompiler
+        run: find /home/runner/Unity/Hub/Editor/2018.4.20f1/Editor/Unity
