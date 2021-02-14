@@ -20,5 +20,5 @@ jobs:
         with:
           unity-version: 2018.4.20f1
 
-      - name: Run a one-line script 1
-        run: find /home/runner/Unity/Hub/Editor/2018.4.20f1/Editor/Unity
+      - name: Try to ask for help
+        run: /home/runner/Unity/Hub/Editor/2018.4.20f1/Editor/Data/Tools/UnityShaderCompiler --help
