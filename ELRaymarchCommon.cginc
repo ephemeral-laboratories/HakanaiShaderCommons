@@ -37,7 +37,7 @@ void ELBoundingBox(out float3 boxMin, out float3 boxMax);
 float3 ELRaymarchNormal(float3 objectPos)
 {
     // Epsilon value for swizzling shortcuts.
-    static const float3 e = fixed3(0.0001, -0.0001, 0.0);
+    static const float3 e = float3(0.0001, -0.0001, 0.0);
 
     // Both the strategies below are essentially just:
     // - move a little in a direction

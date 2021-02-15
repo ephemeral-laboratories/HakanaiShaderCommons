@@ -1,6 +1,8 @@
 #ifndef EL_RAYCAST_FUNCTIONS_CGINC_
 #define EL_RAYCAST_FUNCTIONS_CGINC_
 
+#include "ELRaycastBaseRays.cginc"
+
 /**
  * Performs a sphere-ray intersection check.
  * Coordinates are in object space.

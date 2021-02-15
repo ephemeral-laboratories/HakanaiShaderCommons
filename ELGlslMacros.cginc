@@ -11,8 +11,8 @@
 #define fract frac
 #define mat4 float4x4
 #define mat3 float3x3
-#define textureLod(a,b,c) tex2Dlod(a,float4(b,0,c))
-#define atan(x,y) atan2(y,x)
-#define mod(x,y) (x-y*floor(x/y)) // glsl mod
+#define textureLod(a, b, c) tex2Dlod(a, float4(b, 0, c))
+#define atan(x, y) atan2(y, x)
+#define mod(x, y) (x - y * floor(x / y)) // glsl mod
 
 #endif // EL_GLSL_MACROS_CGINC_

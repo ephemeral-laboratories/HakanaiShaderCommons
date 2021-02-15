@@ -1,6 +1,7 @@
 #ifndef EL_UNITY_UTILITIES_CGINC_
 #define EL_UNITY_UTILITIES_CGINC_
 
+#include "UnityCG.cginc"
 #include "ELMathUtilities.cginc"
 
 float3 ELWorldToObjectPos(float3 worldPos)
