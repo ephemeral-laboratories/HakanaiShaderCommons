@@ -139,6 +139,7 @@ float sdBoundingBox( float3 p, float3 b, float e )
         length(max(float3(q.x,p.y,q.z),0.0))+min(max(q.x,max(p.y,q.z)),0.0)),
         length(max(float3(q.x,q.y,p.z),0.0))+min(max(q.x,max(q.y,p.z)),0.0));
 }
+
 // Torus
 // torus.x: diameter
 // torus.y: thickness
