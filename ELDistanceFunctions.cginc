@@ -129,6 +129,17 @@ float fBox2Cheap(float2 pos, float2 box)
 	return max(d.x, d.y);
 }
 
+// Makes a wireframe box at p with scale b and e is how much to hollow out.
+float sdBoundingBox( float3 p, float3 b, float e )
+{
+    p = abs(p  )-b;
+    float3 q = abs(p+e)-e;
+    return min(min(
+        length(max(float3(p.x,q.y,q.z),0.0))+min(max(p.x,max(q.y,q.z)),0.0),
+        length(max(float3(q.x,p.y,q.z),0.0))+min(max(q.x,max(p.y,q.z)),0.0)),
+        length(max(float3(q.x,q.y,p.z),0.0))+min(max(q.x,max(q.y,p.z)),0.0));
+}
+
 // Torus
 // torus.x: diameter
 // torus.y: thickness
@@ -430,8 +441,7 @@ float sdTetrahedron(float3 pos, float h)
     return sqrt((d2 + q.z * q.z) / m2) * sign(max(q.z, -pos.y));
 }
 
-
-// by pema based off of https://swiftcoder.wordpress.com/2010/06/21/logarithmic-spiral-distance-field/
+// by pema99 based off of https://swiftcoder.wordpress.com/2010/06/21/logarithmic-spiral-distance-field/
 float sdSpiral(float3 p, float thickness, float height, float a, float b, float offset)
 {
     const float e = 2.7182;

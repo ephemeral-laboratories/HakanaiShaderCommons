@@ -121,4 +121,11 @@ float3 ELMod(float3 dividend, float3 divisor)
     return dividend - divisor * floor(dividend / divisor);
 }
 
+// https://en.wikipedia.org/wiki/Smoothstep#Variations
+float ELSmootherStep(float edge0, float edge1, float x) 
+{
+    x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+}
+
 #endif // EL_MATH_UTILITIES_CGINC_
