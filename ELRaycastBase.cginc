@@ -25,6 +25,8 @@ ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
     output.objectPos = input.objectPos;
     output.objectNormal = input.objectNormal;
     output.color = input.color;
+    float3 worldPos = mul(unity_ObjectToWorld, input.objectPos).xyz;
+    float3 worldNormal = UnityObjectToWorldNormal(input.objectNormal);
 
     // Determining whether the projection is isometric.
     // Variables like `unity_OrthoParams` and `_WorldSpaceCameraPos` lie about
@@ -42,6 +44,28 @@ ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
         output.objectRayOrigin = ELWorldToObjectPos(UNITY_MATRIX_I_V._m03_m13_m23);
         output.objectRayDirection = input.objectPos - output.objectRayOrigin;
     }
+
+    #if !defined(SPHERICAL_HARMONICS_PER_PIXEL)
+        #ifndef LIGHTMAP_ON
+            #if UNITY_SHOULD_SAMPLE_SH
+                output.sh = 0;
+                #ifdef VERTEXLIGHT_ON
+                    output.sh += Shade4PointLights(
+                        unity_4LightPosX0, 
+                        unity_4LightPosY0, 
+                        unity_4LightPosZ0,
+                        unity_LightColor[0].rgb, 
+                        unity_LightColor[1].rgb, 
+                        unity_LightColor[2].rgb, 
+                        unity_LightColor[3].rgb,
+                        unity_4LightAtten0, 
+                        worldPos, 
+                        worldNormal);
+                #endif
+                output.sh = ShadeSHPerVertex(worldNormal, output.sh);
+            #endif
+        #endif
+    #endif    
 
     return output;
 }
@@ -135,7 +159,7 @@ ELRaycastBaseFragmentOutput ELRaycastFragment(ELRaycastBaseFragmentInput input)
     SurfaceOutputStandard surfaceOutput = ELRaycastSurface(input, objectPos, objectNormal);
 
     ELRaycastBaseFragmentOutput output;
-    output.color = ELSurfaceFragment(surfaceOutput, objectPos, objectNormal);
+    output.color = ELSurfaceFragment(surfaceOutput, input, objectPos, objectNormal);
 
     float4 clipPos = UnityObjectToClipPos(float4(objectPos, 1.0));
     output.clipDepth = clipPos.z / clipPos.w;

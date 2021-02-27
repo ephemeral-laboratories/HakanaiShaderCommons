@@ -71,6 +71,18 @@ struct ELRaycastBaseFragmentInput
      * The direction of the ray in object space.
      */
     float3 objectRayDirection   : TEXCOORD3;
+    /**
+     * This should be done in the vertex shader.
+     */
+    #ifndef SPHERICAL_HARMONICS_PER_PIXEL
+        #ifndef LIGHTMAP_ON
+            #if UNITY_SHOULD_SAMPLE_SH
+            half3 sh : TEXCOORD4;
+            #endif
+        #endif
+    #endif    
+    
+
 };
 
 /**
