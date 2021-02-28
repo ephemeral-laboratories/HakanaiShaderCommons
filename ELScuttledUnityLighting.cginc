@@ -93,8 +93,12 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     giInput.worldPos = worldPos;
     giInput.worldViewDir = worldViewDir;
     giInput.atten = attenuation;
+    #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+        giInput.lightmapUV = input.lmap;
+    #else
     giInput.lightmapUV = 0.0;
-    #if UNITY_SHOULD_SAMPLE_SH
+    #endif
+    #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
         #ifdef SPHERICAL_HARMONICS_PER_PIXEL
         giInput.ambient = ShadeSHPerPixel(worldNormal, 0.0, worldPos);
         #else

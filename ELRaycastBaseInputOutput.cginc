@@ -72,16 +72,13 @@ struct ELRaycastBaseFragmentInput
      */
     float3 objectRayDirection   : TEXCOORD3;
     /**
+     * Lightmap.
+     */    
+    float4 lmap : TEXCOORD4;
+    /**
      * This should be done in the vertex shader.
      */
-    #ifndef SPHERICAL_HARMONICS_PER_PIXEL
-        #ifndef LIGHTMAP_ON
-            #if UNITY_SHOULD_SAMPLE_SH
-            half3 sh : TEXCOORD4;
-            #endif
-        #endif
-    #endif    
-    
+    half3 sh : TEXCOORD5;
 
 };
 

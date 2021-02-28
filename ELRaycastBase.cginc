@@ -44,7 +44,12 @@ ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
         output.objectRayOrigin = ELWorldToObjectPos(UNITY_MATRIX_I_V._m03_m13_m23);
         output.objectRayDirection = input.objectPos - output.objectRayOrigin;
     }
-
+    #ifdef DYNAMICLIGHTMAP_ON
+        o.lmap.zw = v.texcoord2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    #endif
+    #ifdef LIGHTMAP_ON
+        o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+    #endif
     #if !defined(SPHERICAL_HARMONICS_PER_PIXEL)
         #ifndef LIGHTMAP_ON
             #if UNITY_SHOULD_SAMPLE_SH
