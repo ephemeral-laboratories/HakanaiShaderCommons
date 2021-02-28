@@ -87,15 +87,15 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
     giInput.atten = attenuation;
     giInput.lightmapUV = 0.0;
     #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-        half3 sh = 0;
+        half3 ambient = 0.0;
         #ifdef VERTEXLIGHT_ON
-            sh += Shade4PointLights(
+            ambient += Shade4PointLights(
                 unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
                 unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
                 unity_4LightAtten0, worldPos, worldNormal);
         #endif
-        sh = ShadeSHPerVertex(worldNormal, sh);
-        giInput.ambient = sh;
+        ambient = ShadeSHPerPixel(worldNormal, ambient, worldPos);
+        giInput.ambient = ambient;
     #else
         giInput.ambient.rgb = 0.0;
     #endif
