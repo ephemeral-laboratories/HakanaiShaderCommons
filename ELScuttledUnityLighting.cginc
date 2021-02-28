@@ -59,7 +59,11 @@ SurfaceOutputStandard ELInitSurfaceOutput(float3 objectNormal)
 // I wanted to write a surface shader, but it turns out you can't write to depth
 // from a surface shader. So here we're using as much as possible of the actual surface
 // shader / standard lighting code.
-float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, float3 objectNormal)
+float4 ELSurfaceFragment(
+    ELRaycastBaseFragmentInput input,
+    SurfaceOutputStandard surfaceOutput,
+    float3 objectPos,
+    float3 objectNormal)
 {
     float3 worldPos = ELObjectToWorldPos(objectPos);
     float3 worldNormal = UnityObjectToWorldNormal(objectNormal);
@@ -87,7 +91,7 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
     giInput.atten = attenuation;
     giInput.lightmapUV = 0.0;
     #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-        half3 ambient = 0.0;
+        half3 ambient = input.ambientOrLightmapUV;
         #ifdef VERTEXLIGHT_ON
             ambient += Shade4PointLights(
                 unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,

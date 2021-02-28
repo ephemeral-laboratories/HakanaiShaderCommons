@@ -26,6 +26,11 @@ ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
     output.objectNormal = input.objectNormal;
     output.color = input.color;
 
+    output.ambientOrLightmapUV = VertexGIForward(
+        (VertexInput) input,
+        mul(unity_ObjectToWorld, input.objectPos),
+        UnityObjectToWorldNormal(output.objectNormal));
+
     // Determining whether the projection is isometric.
     // Variables like `unity_OrthoParams` and `_WorldSpaceCameraPos` lie about
     // the position of the camera, but the transform matrices don't lie. Can't lie.
@@ -135,7 +140,7 @@ ELRaycastBaseFragmentOutput ELRaycastFragment(ELRaycastBaseFragmentInput input)
     SurfaceOutputStandard surfaceOutput = ELRaycastSurface(input, objectPos, objectNormal);
 
     ELRaycastBaseFragmentOutput output;
-    output.color = ELSurfaceFragment(surfaceOutput, objectPos, objectNormal);
+    output.color = ELSurfaceFragment(input, surfaceOutput, objectPos, objectNormal);
 
     float4 clipPos = UnityObjectToClipPos(float4(objectPos, 1.0));
     output.clipDepth = clipPos.z / clipPos.w;
