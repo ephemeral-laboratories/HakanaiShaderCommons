@@ -91,17 +91,9 @@ float4 ELSurfaceFragment(
     giInput.atten = attenuation;
     giInput.lightmapUV = 0.0;
     #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-        half3 ambient = input.ambientOrLightmapUV;
-        #ifdef VERTEXLIGHT_ON
-            ambient += Shade4PointLights(
-                unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
-                unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
-                unity_4LightAtten0, worldPos, worldNormal);
-        #endif
-        ambient = ShadeSHPerPixel(worldNormal, ambient, worldPos);
-        giInput.ambient = ambient;
+        giInput.ambient = ShadeSHPerPixel(worldNormal, input.ambientOrLightmapUV, worldPos);
     #else
-        giInput.ambient.rgb = 0.0;
+        giInput.ambient.rgb = float3(0.0, 0.0, 0.0);
     #endif
     giInput.probeHDR[0] = unity_SpecCube0_HDR;
     giInput.probeHDR[1] = unity_SpecCube1_HDR;
