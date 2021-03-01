@@ -62,6 +62,10 @@ SurfaceOutputStandard ELInitSurfaceOutput(float3 objectNormal)
 float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragmentInput input, float3 objectPos, float3 objectNormal)
 {
     float3 worldPos = ELObjectToWorldPos(objectPos);
+    
+    //This shouldn't make it into a commit for a PR. Kit likes scaling her world normals to reduce shininess.
+    //float3 worldNormal = 2.0 * UnityObjectToWorldNormal(objectNormal)  - 1.0;
+
     float3 worldNormal = UnityObjectToWorldNormal(objectNormal);
 
     //No need to normalize if it's already a directional light.
@@ -80,10 +84,23 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
     gi.indirect.diffuse = 0;
     gi.indirect.specular = 0;
-    
-    //Lighting doesn't look correct when multiplied with attenuation.
+#ifdef USING_DIRECTIONAL_LIGHT
+    //I think length(worldLightDir) should work by itself but I'm not 100% sure so let's just adapt Xiexe XStoon's method instead: https://github.com/Xiexe/Xiexes-Unity-Shaders
+    if(length(unity_SHAr.xyz*unity_SHAr.w + unity_SHAg.xyz*unity_SHAg.w + unity_SHAb.xyz*unity_SHAb.w) == 0 && length(worldLightDir) < 0.1)
+    {
+        float fakeSwitch = sqrt(1-_WorldSpaceLightPos0.w*_WorldSpaceLightPos0.w);
+        float fakeIntensity = clamp(length(_LightColor0.rgb), 0.55, 1);
+        gi.light.color = _LightColor0.rgb + ShadeSH9(float4(0,0,0,1)) * fakeIntensity * fakeSwitch;
+        gi.light.dir = worldLightDir + float3(0.33333333,0.66666666,0.66666666) * fakeSwitch;
+    } else {
+        gi.light.color = _LightColor0.rgb;// * attenuation;
+        gi.light.dir = worldLightDir;
+    }
+#else
     gi.light.color = _LightColor0.rgb;// * attenuation;
     gi.light.dir = worldLightDir;
+#endif
+    
 
 #ifdef UNITY_PASS_FORWARDBASE
 
@@ -96,7 +113,7 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
         giInput.lightmapUV = input.lmap;
     #else
-    giInput.lightmapUV = 0.0;
+        giInput.lightmapUV = 0.0;
     #endif
     #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
         #ifdef SPHERICAL_HARMONICS_PER_PIXEL
