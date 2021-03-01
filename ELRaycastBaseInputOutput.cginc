@@ -3,6 +3,9 @@
 
 /**
  * Vertex input structure.
+ *
+ * Note that the order of these matches that of `UnityStandardInput.cginc`.
+ * That is deliberate, so that we can cheatily cast ours to theirs.
  */
 struct ELRaycastBaseVertexInput
 {
@@ -14,22 +17,34 @@ struct ELRaycastBaseVertexInput
     /**
      * The vertex normal in object space.
      */
-    float3 objectNormal     : NORMAL;
-
-    /**
-     * The vertex tangent in object space.
-     */
-    float4 objectTangent    : TANGENT;
-
-    /**
-     * The vertex color.
-     */
-    float4 color            : COLOR;
+    float3 objectNormal         : NORMAL;
 
     /**
      * The vertex texture coordinates.
      */
-    float2 texcoord         : TEXCOORD0;
+    float2 texcoord0            : TEXCOORD0;
+
+    /**
+     * The vertex texture coordinates.
+     */
+    float2 texcoord1            : TEXCOORD1;
+
+#if defined(DYNAMICLIGHTMAP_ON) || defined(UNITY_PASS_META)
+    /**
+     * Not used by us but having it here mirrors VertexInput.
+     */
+    float2 texcoord2            : TEXCOORD2;
+#endif
+
+    /**
+     * The vertex tangent in object space.
+     */
+    float4 objectTangent        : TANGENT;
+
+    /**
+     * The vertex color.
+     */
+    float4 color                : COLOR;
 };
 
 /**
@@ -71,6 +86,11 @@ struct ELRaycastBaseFragmentInput
      * The direction of the ray in object space.
      */
     float3 objectRayDirection   : TEXCOORD3;
+
+    /**
+     * Contains either spherical harmonics or the lightmap UVs.
+     */
+    float4 ambientOrLightmapUV  : TEXCOORD4;
 };
 
 /**
