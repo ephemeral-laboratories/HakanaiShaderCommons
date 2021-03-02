@@ -76,10 +76,13 @@ struct ELRaycastBaseFragmentInput
      */    
     float4 lmap : TEXCOORD4;
     /**
-     * This should be done in the vertex shader.
-     */
+     * Spherical harmonics from vertex shading.
+     */        
     half3 sh : TEXCOORD5;
-
+    /**
+     * Ray iterations (I tried to name it iterations but it conflicts with a shader keyword).
+     */            
+    uint its : TEXCOORD6;
 };
 
 /**

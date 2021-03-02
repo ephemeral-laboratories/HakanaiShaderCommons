@@ -88,7 +88,7 @@ ELRaycastBaseFragmentInput ELRaycastBaseVertex(ELRaycastBaseVertexInput input)
  *        later used in {@link ELDecodeMaterial}.
  * @return {@code true} if the ray hit. {@code false} otherwise.
  */
-bool ELRaycast(ELRay ray, out float3 objectPos, out float3 objectNormal, out float material);
+bool ELRaycast(ELRay ray, out float3 objectPos, out float3 objectNormal, out float material, out uint its);
 
 /**
  * _Pseudo-abstract method, to be implemented by consumers._
@@ -112,9 +112,9 @@ void ELDecodeMaterial(ELRaycastBaseFragmentInput input, float material, inout Su
  *        later used in {@link ELDecodeMaterial}.
  * @return {@code true} if the ray hit, {@code false} otherwise.
  */
-bool ELFragmentRaycast(ELRaycastBaseFragmentInput input, out float3 objectPos, out float3 objectNormal, out float material)
+bool ELFragmentRaycast(ELRaycastBaseFragmentInput input, out float3 objectPos, out float3 objectNormal, out float material, out uint its)
 {
-    return ELRaycast(ELGetRay(input), objectPos, objectNormal, material);
+    return ELRaycast(ELGetRay(input), objectPos, objectNormal, material, its);
 }
 
 /**
@@ -132,7 +132,8 @@ bool ELFragmentRaycast(ELRaycastBaseFragmentInput input, out float3 objectPos, o
 SurfaceOutputStandard ELRaycastSurface(ELRaycastBaseFragmentInput input, out float3 objectPos, out float3 objectNormal)
 {
     float material;
-    bool hit = ELFragmentRaycast(input, objectPos, objectNormal, material);
+    uint iters = 0;
+    bool hit = ELFragmentRaycast(input, objectPos, objectNormal, material, iters);
 
     // Save lighting calculations when not hit
     UNITY_BRANCH
@@ -142,6 +143,7 @@ SurfaceOutputStandard ELRaycastSurface(ELRaycastBaseFragmentInput input, out flo
         // TODO: Should be returning here!
     }
 
+    input.its = iters;
     SurfaceOutputStandard output;
     UNITY_INITIALIZE_OUTPUT(SurfaceOutputStandard, output);
     output.Normal = UnityObjectToWorldNormal(objectNormal);
@@ -183,7 +185,8 @@ float4 ELRaycastShadowCasterFragment(ELRaycastBaseFragmentInput input) : SV_Targ
     float3 objectPos;
     float3 objectNormalUnused;
     float materialUnused;
-    bool hit = ELFragmentRaycast(input, objectPos, objectNormalUnused, materialUnused);
+    uint iterationsUnused;
+    bool hit = ELFragmentRaycast(input, objectPos, objectNormalUnused, materialUnused, iterationsUnused);
     clip(hit ? 1.0 : -1.0);
 
     // Has to be called `v` because `TRANSFER_SHADOW_CASTER` sucks

@@ -69,7 +69,7 @@ float3 ELRaymarchNormal(float3 objectPos)
 #define MAX_DISTANCE 200.0
 
 
-bool ELRaymarch(ELRay ray, out float3 objectPos, out float material)
+bool ELRaymarch(ELRay ray, out float3 objectPos, out float material, out uint its)
 {
     float2 mapResult;
 
@@ -92,6 +92,7 @@ bool ELRaymarch(ELRay ray, out float3 objectPos, out float material)
     {
         mapResult = ELMap(ray.position);
         objectPos = ray.position;
+        its = i;
 
         // XXX: Do we even still need MAX_DISTANCE?
         if (mapResult.x > MAX_DISTANCE || ray.reach > maxReach)
