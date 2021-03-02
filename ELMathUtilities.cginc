@@ -133,6 +133,7 @@ float3 ELHueShift (in float3 color, in float3 shift) {
     float3 u = color - p;
     float3 v = cross(float3(0.55735,0.55735,0.55735),u);
     color = u*cos(shift*0.2832) + v*sin(shift*0.2832) + p;
+    return color;
 }
 
 #endif // EL_MATH_UTILITIES_CGINC_
