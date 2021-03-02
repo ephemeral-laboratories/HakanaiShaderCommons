@@ -128,4 +128,11 @@ float ELSmootherStep(float edge0, float edge1, float x)
     return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
 }
 
+float3 ELHueShift (in float3 color, in float3 shift) {
+    float3 p = float3(0.55735,0.55735,0.55735) * (float3(0.55735,0.55735,0.55735),color);
+    float3 u = color - p;
+    float3 v = cross(float3(0.55735,0.55735,0.55735),u);
+    color = u*cos(shift*0.2832) + v*sin(shift*0.2832) + p;
+}
+
 #endif // EL_MATH_UTILITIES_CGINC_

@@ -5,9 +5,9 @@
 #include "ELRaymarchCommon.cginc"
 
 // Implementing function defined in `ELRaycastBase.cginc`
-bool ELRaycast(ELRay ray, out float3 objectPos, out float3 objectNormal, out float material, out uint its)
+bool ELRaycast(ELRay ray, out float3 objectPos, out float3 objectNormal, out float material, out uint its, out float reach)
 {
-    bool hit = ELRaymarch(ray, objectPos, material, its);
+    bool hit = ELRaymarch(ray, objectPos, material, its, reach);
 
     // Avoid potential multiple map calls if it didn't hit at all
     UNITY_BRANCH
