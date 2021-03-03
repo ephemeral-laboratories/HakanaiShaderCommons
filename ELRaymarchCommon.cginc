@@ -64,9 +64,17 @@ float3 ELRaymarchNormal(float3 objectPos)
     #endif
 }
 
+#ifndef MAX_STEPS
 #define MAX_STEPS 200
+#endif
+
+#ifndef MIN_DISTANCE
 #define MIN_DISTANCE 0.0001
+#endif
+
+#ifndef MAX_DISTANCE
 #define MAX_DISTANCE 200.0
+#endif
 
 
 bool ELRaymarch(ELRay ray, out float3 objectPos, out float material, out uint its, out float reach)
