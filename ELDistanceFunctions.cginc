@@ -462,7 +462,32 @@ float sdSpiral(float3 p, float thickness, float height, float a, float b, float 
 
     return max(dist / thickness, abs(p.z) - height);
 }
+float sdKnighty(float3 p, float i0)
+{
+    const float minsx[5] = {-.3252, -1.05,-1.21,-1.04,-0.737};
+    const float minsy[5] = {-.7862, -1.05,-.954,-.79,-0.73};
+    const float minsz[5] = {-.0948, -0.0001,-.0001,-.126,-1.23};
+    const float minsw[5] = {.678, .7,1.684,.833, .627};
+    const float maxsx[5] = {.3457, 1.05,.39,.3457,.73};
+    const float maxsy[5] = {1.0218, 1.05,.65,1.0218,0.73};
+    const float maxsz[5] = {1.2215, 1.27,1.27,1.2215,.73};
+    const float maxsw[5] = {.9834, .95,2.74,.9834, .8335};
 
+    float4 mins = float4(minsx[i0], minsy[i0], minsz[i0], minsw[i0]);
+    float4 maxs = float4(maxsx[i0], maxsy[i0], maxsz[i0], maxsw[i0]);
+
+    float k = 0.0;
+    float scale=1.0;
+    for (int i=0; i < 5; i++)
+    {
+        p = 2.0 * clamp(p, mins.xyz, maxs.xyz) - p;
+        k = max(mins.w / dot(p,p), 1.0);
+        p *= k;
+        scale *= k;
+    }
+    float rxy = length(p.xy);
+    return 0.7 * max(rxy - maxs.w, rxy * p.z / length(p)) / scale;
+}
 
 float udTriangle(float3 pos, float3 a, float3 b, float3 c)
 {
