@@ -90,7 +90,10 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     {
         float fakeSwitch = sqrt(1-_WorldSpaceLightPos0.w*_WorldSpaceLightPos0.w);
         float fakeIntensity = clamp(length(_LightColor0.rgb), 0.55, 1);
-        gi.light.color = _LightColor0.rgb + ShadeSH9(float4(0,0,0,1)) * fakeIntensity * fakeSwitch;
+        // Better lighting.
+        gi.light.color = _LightColor0.rgb + ShadeSH9(float4(worldNormal,1)) * fakeIntensity * fakeSwitch;
+        // Only ambient.
+        //gi.light.color = _LightColor0.rgb + float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
         gi.light.dir = worldLightDir + float3(0.33333333,0.66666666,0.66666666) * fakeSwitch;
     } else {
         gi.light.color = _LightColor0.rgb;// * attenuation;
