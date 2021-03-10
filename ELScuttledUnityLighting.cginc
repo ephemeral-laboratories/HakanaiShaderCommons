@@ -85,14 +85,14 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     gi.indirect.diffuse = 0;
     gi.indirect.specular = 0;
 #ifdef USING_DIRECTIONAL_LIGHT
-    //I think length(worldLightDir) should work by itself but I'm not 100% sure so let's just adapt Xiexe XStoon's method instead: https://github.com/Xiexe/Xiexes-Unity-Shaders
+    // If we have no directional light, compare diffuse irradiance (SHAx) with ambience (w term) to determine if ambient lighting is sufficient to warrant simuating lighting.
     if(length(unity_SHAr.xyz*unity_SHAr.w + unity_SHAg.xyz*unity_SHAg.w + unity_SHAb.xyz*unity_SHAb.w) == 0 && length(worldLightDir) < 0.1)
     {
         float fakeSwitch = sqrt(1-_WorldSpaceLightPos0.w*_WorldSpaceLightPos0.w);
         float fakeIntensity = clamp(length(_LightColor0.rgb), 0.55, 1);
-        // Better lighting.
+        // Realistic lighting.
         gi.light.color = _LightColor0.rgb + ShadeSH9(float4(worldNormal,1)) * fakeIntensity * fakeSwitch;
-        // Only ambient.
+        // Toon lighting.
         //gi.light.color = _LightColor0.rgb + float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
         gi.light.dir = worldLightDir + float3(0.33333333,0.66666666,0.66666666) * fakeSwitch;
     } else {
