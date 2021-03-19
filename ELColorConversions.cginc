@@ -1,6 +1,8 @@
 #ifndef EL_COLOR_CONVERSIONS_CGINC_
 #define EL_COLOR_CONVERSIONS_CGINC_
 
+// Many functions in here sourced from: http://www.chilliant.com/rgb2hsv.html
+
 /**
  * Common code to convert a hue value to RGB.
  *
