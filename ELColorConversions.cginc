@@ -224,4 +224,19 @@ half3 ELRGBToHCL(in half3 rgb)
     return hcl;
 }
 
+/**
+ * Helper function to simply hue shift an RGB color.
+ *
+ * @param rgb the input RGB value.
+ * @param shift the hue shift amount (generally 0..1 as that is the range of hues)
+ * @return the hue-shifted RGB value.
+ */
+float3 ELHueShift(in float3 rgb, in float shift)
+{ 
+    float3 hsv = ELRGBToHSV(rgb);
+    hsv.x = frac(hsv.x + shift);
+    return ELHSVToRGB(hsv);
+} 
+
+
 #endif // EL_COLOR_CONVERSIONS_CGINC_
