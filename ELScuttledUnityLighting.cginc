@@ -116,7 +116,11 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
 #endif // UNITY_PASS_FORWARDBASE
 
     float4 colour = LightingStandard(surfaceOutput, worldViewDir, gi);
-    colour.rgb += surfaceOutput.Emission;
+
+    #ifdef UNITY_PASS_FORWARDBASE
+        colour.rgb += surfaceOutput.Emission;
+    #endif
+
     colour = ELCalculateFog(objectPos, clipPos, colour);
     return colour;
 }
