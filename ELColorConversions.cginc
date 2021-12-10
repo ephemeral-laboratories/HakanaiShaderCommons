@@ -1,6 +1,8 @@
 #ifndef EL_COLOR_CONVERSIONS_CGINC_
 #define EL_COLOR_CONVERSIONS_CGINC_
 
+#include "UnityCG.cginc"
+
 // Many functions in here sourced from: http://www.chilliant.com/rgb2hsv.html
 
 /**
@@ -15,7 +17,7 @@
  * @param h the hue value.
  * @return the rgb value.
  */
-half3 ELHueToRGB(in half h)
+half3 ELHueToRgb(in half h)
 {
     half r = abs(h * 6 - 3) - 1;
     half g = 2 - abs(h * 6 - 2);
@@ -31,7 +33,7 @@ half EPSILON = 1e-10;
  * @param rgb the RGB value.
  * @return the resulting HCV value.
  */
-half3 ELRGBToHCV(in half3 rgb)
+half3 ELRgbToHcv(in half3 rgb)
 {
     // Based on work by Sam Hocevar and Emil Persson
     half4 p = (rgb.g < rgb.b) ? half4(rgb.bg, -1.0, 2.0/3.0)
@@ -48,9 +50,9 @@ half3 ELRGBToHCV(in half3 rgb)
  * @param hsv the HSV value.
  * @return the resulting RGB value.
  */
-half3 ELHSVToRGB(in half3 hsv)
+half3 ELHsvToRgb(in half3 hsv)
 {
-    half3 rgb = ELHueToRGB(hsv.x);
+    half3 rgb = ELHueToRgb(hsv.x);
     return ((rgb - 1) * hsv.y + 1) * hsv.z;
 }
 
@@ -60,9 +62,9 @@ half3 ELHSVToRGB(in half3 hsv)
  * @param hsv the HSL value.
  * @return the resulting RGB value.
  */
-half3 ELHSLToRGB(in half3 hsl)
+half3 ELHslToRgb(in half3 hsl)
 {
-    half3 rgb = ELHueToRGB(hsl.x);
+    half3 rgb = ELHueToRgb(hsl.x);
     half c = (1 - abs(2 * hsl.z - 1)) * hsl.y;
     return (rgb - 0.5) * c + hsl.z;
 }
@@ -77,9 +79,9 @@ half3 HCY_WEIGHTS = half3(0.299, 0.587, 0.114);
  * @param hcy the HCY value.
  * @return the resulting RGB value.
  */
-half3 HCYtoRGB(in half3 hcy)
+half3 HCYToRgb(in half3 hcy)
 {
-    half3 rgb = ELHueToRGB(hcy.x);
+    half3 rgb = ELHueToRgb(hcy.x);
     half z = dot(rgb, HCY_WEIGHTS);
     if (hcy.z < z)
     {
@@ -102,7 +104,7 @@ half HCL_MAX_L = 0.530454533953517; // == exp(HCL_GAMMA / HCL_Y0) - 0.5
  * @param hcl the HCL value.
  * @return the resulting RGB value.
  */
-half3 HCLtoRGB(in half3 hcl)
+half3 ELHclToRgb(in half3 hcl)
 {
     half3 rgb = 0;
     if (hcl.z != 0)
@@ -156,9 +158,9 @@ half3 HCLtoRGB(in half3 hcl)
  * @param rgb the RGB value.
  * @return the resulting HSV value.
  */
-half3 ELRGBToHSV(in half3 rgb)
+half3 ELRgbToHsv(in half3 rgb)
 {
-    half3 hcv = ELRGBToHCV(rgb);
+    half3 hcv = ELRgbToHcv(rgb);
     half s = hcv.y / (hcv.z + EPSILON);
     return half3(hcv.x, s, hcv.z);
 }
@@ -169,9 +171,9 @@ half3 ELRGBToHSV(in half3 rgb)
  * @param rgb the RGB value.
  * @return the resulting HSL value.
  */
-half3 ELRGBToHSL(in half3 rgb)
+half3 ELRgbToHsl(in half3 rgb)
 {
-    half3 hcv = ELRGBToHCV(rgb);
+    half3 hcv = ELRgbToHcv(rgb);
     half l = hcv.z - hcv.y * 0.5;
     half s = hcv.y / (1 - abs(l * 2 - 1) + EPSILON);
     return half3(hcv.x, s, l);
@@ -183,12 +185,12 @@ half3 ELRGBToHSL(in half3 rgb)
  * @param rgb the RGB value.
  * @return the resulting HCY value.
  */
-half3 ELRGBToHCY(in half3 rgb)
+half3 ELRgbToHcy(in half3 rgb)
 {
     // Corrected by David Schaeffer
-    half3 hcv = ELRGBToHCV(rgb);
+    half3 hcv = ELRgbToHcv(rgb);
     half y = dot(rgb, HCY_WEIGHTS);
-    half z = dot(ELHueToRGB(hcv.x), HCY_WEIGHTS);
+    half z = dot(ELHueToRgb(hcv.x), HCY_WEIGHTS);
     if (y < z)
     {
         hcv.y *= z / (EPSILON + y);
@@ -206,7 +208,7 @@ half3 ELRGBToHCY(in half3 rgb)
  * @param rgb the RGB value.
  * @return the resulting HCL value.
  */
-half3 ELRGBToHCL(in half3 rgb)
+half3 ELRgbToHcl(in half3 rgb)
 {
     half3 hcl;
     half h = 0;
@@ -235,9 +237,9 @@ half3 ELRGBToHCL(in half3 rgb)
  */
 float3 ELHueShift(in float3 rgb, in float shift)
 { 
-    float3 hsv = ELRGBToHSV(rgb);
+    float3 hsv = ELRgbToHsv(rgb);
     hsv.x = frac(hsv.x + shift);
-    return ELHSVToRGB(hsv);
+    return ELHsvToRgb(hsv);
 } 
 
 
