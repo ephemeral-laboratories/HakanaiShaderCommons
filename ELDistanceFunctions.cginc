@@ -780,15 +780,24 @@ float2 pModRotate(float2 pos, float theta)
     return cos(theta) * pos + sin(theta) * float2(pos.y, -pos.x);
 }
 
-float2 pModPolar(float2 pos, float repetitions)
+// Repeat around the origin by a fixed angle.
+// For easier use, num of repetitions is use to specify the angle.
+float pModPolar(inout float2 pos, float repetitions)
 {
     float angle = UNITY_TWO_PI / repetitions;
+    float a = atan2(pos.y, pos.x) + angle / 2.0;
     float r = length(pos);
-    float a = atan2(pos.y, pos.x) + angle * 0.5;
-    a = ELMod(a, angle) - angle * 0.5;
-    float2 result;
-    sincos(a, result.y, result.x);
-    return result * r;
+    float c = floor(a/angle);
+    a = ELMod(a, angle) - angle / 2.0;
+    sincos(a, pos.y, pos.x);
+    pos *= r;
+    // For an odd number of repetitions, fix cell index of the cell in -x direction
+    // (cell index would be e.g. -5 and 5 in the two halves of the cell):
+    if (abs(c) >= repetitions / 2.0)
+    {
+        c = abs(c);
+    }
+    return c;
 }
 
 #endif // EL_DISTANCE_FUNCTIONS_CGINC_
