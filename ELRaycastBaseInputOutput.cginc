@@ -9,27 +9,32 @@ struct ELRaycastBaseVertexInput
     /**
      * The vertex position in object space.
      */
-    float4 objectPos        : POSITION;
+    float4 objectPos : POSITION;
 
     /**
      * The vertex normal in object space.
      */
-    float3 objectNormal     : NORMAL;
+    float3 objectNormal : NORMAL;
 
     /**
      * The vertex tangent in object space.
      */
-    float4 objectTangent    : TANGENT;
+    float4 objectTangent : TANGENT;
 
     /**
      * The vertex color.
      */
-    float4 color            : COLOR;
+    float4 color : COLOR;
 
     /**
      * The vertex texture coordinates.
      */
-    float2 texcoord         : TEXCOORD0;
+    float2 texcoord : TEXCOORD0;
+
+    /**
+     * The second vertex texture coordinates, used for light mapping.
+     */
+    float2 texcoord1 : TEXCOORD1;
 };
 
 /**
@@ -71,6 +76,18 @@ struct ELRaycastBaseFragmentInput
      * The direction of the ray in object space.
      */
     float3 objectRayDirection   : TEXCOORD3;
+
+    /**
+     * UV for light mapping.
+     */    
+    float4 lightMapUV : TEXCOORD4;
+
+#if !defined(LIGHTMAP_ON) && UNITY_SHOULD_SAMPLE_SH
+    /**
+     * Spherical harmonics.
+     */
+    half3 sh : TEXCOORD5;
+#endif
 };
 
 /**

@@ -60,22 +60,30 @@ SurfaceOutputStandard ELInitSurfaceOutput(float3 objectNormal)
 // I wanted to write a surface shader, but it turns out you can't write to depth
 // from a surface shader. So here we're using as much as possible of the actual surface
 // shader / standard lighting code.
-float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, float3 objectNormal)
+float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragmentInput input, float3 objectPos, float3 objectNormal)
 {
     float3 worldPos = ELObjectToWorldPos(objectPos);
     float3 worldNormal = UnityObjectToWorldNormal(objectNormal);
+
+    //No need to normalize if it's already a directional light.
+#ifdef USING_DIRECTIONAL_LIGHT
+    float3 worldLightDir = _WorldSpaceLightPos0.xyz;
+#else
     float3 worldLightDir = normalize(UnityWorldSpaceLightDir(worldPos));
+#endif
     float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
 
     float4 clipPos = UnityObjectToClipPos(float4(objectPos, 1.0));
 
     float attenuation = ELCalculateLightAttenuation(objectPos, worldPos, clipPos);
-
+    surfaceOutput.Normal = worldNormal;
     UnityGI gi;
     UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
     gi.indirect.diffuse = 0;
-    gi.indirect.specular = 1.0;
-    gi.light.color = _LightColor0.rgb * attenuation;
+    gi.indirect.specular = 0;
+    
+    //Lighting doesn't look correct when multiplied with attenuation.
+    gi.light.color = _LightColor0.rgb;// * attenuation;
     gi.light.dir = worldLightDir;
 
 #ifdef UNITY_PASS_FORWARDBASE
@@ -86,7 +94,13 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
     giInput.worldPos = worldPos;
     giInput.worldViewDir = worldViewDir;
     giInput.atten = attenuation;
-    giInput.lightmapUV = 0.0;
+
+    #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+        giInput.lightmapUV = input.lmap;
+    #else
+        giInput.lightmapUV = 0.0;
+    #endif
+
     #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
         half3 sh = 0;
         #ifdef VERTEXLIGHT_ON
@@ -95,11 +109,10 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, float3 objectPos, 
                 unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
                 unity_4LightAtten0, worldPos, worldNormal);
         #endif
-        sh = ShadeSHPerVertex(worldNormal, sh);
-        giInput.ambient = sh;
     #else
         giInput.ambient.rgb = 0.0;
     #endif
+
     giInput.probeHDR[0] = unity_SpecCube0_HDR;
     giInput.probeHDR[1] = unity_SpecCube1_HDR;
     #if defined(UNITY_SPECCUBE_BLENDING) || defined(UNITY_SPECCUBE_BOX_PROJECTION)
