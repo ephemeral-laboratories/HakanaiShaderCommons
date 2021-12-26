@@ -102,12 +102,10 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     #endif
 
     #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-        half3 sh = 0;
-        #ifdef VERTEXLIGHT_ON
-            sh += Shade4PointLights(
-                unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
-                unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
-                unity_4LightAtten0, worldPos, worldNormal);
+        #ifdef SPHERICAL_HARMONICS_PER_PIXEL
+        giInput.ambient = ShadeSHPerPixel(worldNormal, 0.0, worldPos);
+        #else
+        giInput.ambient.rgb = input.sh;
         #endif
     #else
         giInput.ambient.rgb = 0.0;
