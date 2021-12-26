@@ -1,7 +1,10 @@
-﻿Unreleased
+﻿v0.3.0
 
+* Added lightmap support
+* Fixed where SH was being calculated
+* Minor improvements to shading
 * Added editor scripts to create raycast or raymarch shaders from
-  their respective templates.
+  their respective templates
 
 v0.2.0
 
@@ -9,7 +12,7 @@ v0.2.0
   It was returning the new position, but should have mutated the
   position and returned the cell, for consistency with other similar
   functions.
-* Renamed color conversion functions to a consistent style.
+* Renamed color conversion functions to a consistent style
 
 v0.1.0
 
