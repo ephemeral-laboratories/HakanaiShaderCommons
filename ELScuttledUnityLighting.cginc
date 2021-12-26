@@ -65,12 +65,14 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     float3 worldPos = ELObjectToWorldPos(objectPos);
     float3 worldNormal = UnityObjectToWorldNormal(objectNormal);
 
-    //No need to normalize if it's already a directional light.
-#ifdef USING_DIRECTIONAL_LIGHT
-    float3 worldLightDir = _WorldSpaceLightPos0.xyz;
-#else
-    float3 worldLightDir = normalize(UnityWorldSpaceLightDir(worldPos));
-#endif
+    // No need to normalize if it's a directional light.
+    float3 worldLightDir =
+        #ifdef USING_DIRECTIONAL_LIGHT
+            _WorldSpaceLightPos0.xyz;
+        #else
+            normalize(UnityWorldSpaceLightDir(worldPos));
+        #endif
+
     float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
 
     float4 clipPos = UnityObjectToClipPos(float4(objectPos, 1.0));
@@ -82,50 +84,46 @@ float4 ELSurfaceFragment(SurfaceOutputStandard surfaceOutput, ELRaycastBaseFragm
     gi.indirect.diffuse = 0;
     gi.indirect.specular = 0;
     
-    //Lighting doesn't look correct when multiplied with attenuation.
-    gi.light.color = _LightColor0.rgb;// * attenuation;
+    // Lighting doesn't look correct when multiplied with attenuation.
+    gi.light.color = _LightColor0.rgb; // * attenuation;
     gi.light.dir = worldLightDir;
 
-#ifdef UNITY_PASS_FORWARDBASE
+    #ifdef UNITY_PASS_FORWARDBASE
 
-    UnityGIInput giInput;
-    UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);
-    giInput.light = gi.light;
-    giInput.worldPos = worldPos;
-    giInput.worldViewDir = worldViewDir;
-    giInput.atten = attenuation;
+        UnityGIInput giInput;
+        UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);
+        giInput.light = gi.light;
+        giInput.worldPos = worldPos;
+        giInput.worldViewDir = worldViewDir;
+        giInput.atten = attenuation;
 
-    #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
-        giInput.lightmapUV = input.lmap;
-    #else
-        giInput.lightmapUV = 0.0;
-    #endif
-
-    #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
-        #ifdef SPHERICAL_HARMONICS_PER_PIXEL
-        giInput.ambient = ShadeSHPerPixel(worldNormal, 0.0, worldPos);
+        #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+            giInput.lightmapUV = input.lmap;
         #else
-        giInput.ambient.rgb = input.sh;
+            giInput.lightmapUV = 0.0;
         #endif
-    #else
-        giInput.ambient.rgb = 0.0;
-    #endif
 
-    giInput.probeHDR[0] = unity_SpecCube0_HDR;
-    giInput.probeHDR[1] = unity_SpecCube1_HDR;
-    #if defined(UNITY_SPECCUBE_BLENDING) || defined(UNITY_SPECCUBE_BOX_PROJECTION)
-        giInput.boxMin[0] = unity_SpecCube0_BoxMin;
-    #endif
-    #ifdef UNITY_SPECCUBE_BOX_PROJECTION
-        giInput.boxMax[0] = unity_SpecCube0_BoxMax;
-        giInput.probePosition[0] = unity_SpecCube0_ProbePosition;
-        giInput.boxMax[1] = unity_SpecCube1_BoxMax;
-        giInput.boxMin[1] = unity_SpecCube1_BoxMin;
-        giInput.probePosition[1] = unity_SpecCube1_ProbePosition;
-    #endif
-    LightingStandard_GI(surfaceOutput, giInput, gi);
+        #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
+            giInput.ambient = input.sh;
+        #else
+            giInput.ambient.rgb = 0.0;
+        #endif
 
-#endif // UNITY_PASS_FORWARDBASE
+        giInput.probeHDR[0] = unity_SpecCube0_HDR;
+        giInput.probeHDR[1] = unity_SpecCube1_HDR;
+        #if defined(UNITY_SPECCUBE_BLENDING) || defined(UNITY_SPECCUBE_BOX_PROJECTION)
+            giInput.boxMin[0] = unity_SpecCube0_BoxMin;
+        #endif
+        #ifdef UNITY_SPECCUBE_BOX_PROJECTION
+            giInput.boxMax[0] = unity_SpecCube0_BoxMax;
+            giInput.probePosition[0] = unity_SpecCube0_ProbePosition;
+            giInput.boxMax[1] = unity_SpecCube1_BoxMax;
+            giInput.boxMin[1] = unity_SpecCube1_BoxMin;
+            giInput.probePosition[1] = unity_SpecCube1_ProbePosition;
+        #endif
+        LightingStandard_GI(surfaceOutput, giInput, gi);
+
+    #endif // UNITY_PASS_FORWARDBASE
 
     float4 colour = LightingStandard(surfaceOutput, worldViewDir, gi);
 
