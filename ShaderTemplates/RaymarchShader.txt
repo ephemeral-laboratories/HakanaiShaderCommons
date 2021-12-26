@@ -1,0 +1,191 @@
+﻿Shader "#NAME#"
+{
+    Properties
+    {
+        _Color ("Color", Color) = (1.0, 1.0, 1.0, 1.0)
+        _Metallic ("Metallic", Range(0.0, 1.0)) = 0.0
+        _Glossiness ("Smoothness", Range(0.0, 1.0)) = 0.5
+    }
+
+    SubShader
+    {
+        Tags
+        {
+            "Queue" = "AlphaTest"
+            "RenderType" = "TransparentCutout"
+            "IgnoreProjector" = "True"
+            "DisableBatching" = "True"
+        }
+
+        LOD 200
+        Cull Back
+
+        CGINCLUDE
+        #include "Packages/garden.ephemeral.shader.commons/ELDistanceFunctions.cginc"
+        #include "Packages/garden.ephemeral.shader.commons/ELGeometry.cginc"
+        #include "Packages/garden.ephemeral.shader.commons/ELMathUtilities.cginc"
+        #include "Packages/garden.ephemeral.shader.commons/ELRaymarchBase.cginc"
+        #include "UnityCG.cginc"
+
+        // Acknowledging that we use these already defined uniforms.
+        // uniform float4 _Color;
+        // uniform float _Metallic;
+        // uniform float _Glossiness;
+        
+        // Implementing function defined in `ELRaymarchCommon.cginc`
+        void ELBoundingBox(out float3 boxMin, out float3 boxMax)
+        {
+            boxMin = float3(-0.5, -0.5, -0.5);
+            boxMax = float3( 0.5,  0.5,  0.5);
+        }
+
+        // Implementing function defined in `ELRaymarchCommon.cginc`
+        float2 ELMap(float3 objectPos)
+        {
+            float d = sdSphere(objectPos, 0.5);
+            return float2(d, 0.0);
+        }
+        
+        // Implementing function defined in `ELRaycastBase.cginc`
+        void ELDecodeMaterial(ELRaycastBaseFragmentInput input, float material, inout SurfaceOutputStandard output)
+        {
+            output.Albedo = _Color.rgb;
+            output.Alpha = _Color.a;
+            output.Metallic = _Metallic;
+            output.Smoothness = _Glossiness;
+        }
+        ENDCG
+
+        Pass
+        {
+            Name "FORWARD_BACK"
+            Tags
+            {
+                "LightMode" = "ForwardBase"
+            }
+
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Front
+            
+            Stencil
+            {
+                Ref 50
+                Comp always
+                Pass replace
+                ZFail replace
+            }
+
+            CGPROGRAM
+            #pragma vertex ELRaycastBaseVertex
+            #pragma fragment ELRaycastFragment
+            #pragma multi_compile_fwdbase
+            #pragma multi_compile_fog
+            #pragma target 4.0
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "FORWARD_FRONT"
+            Tags
+            {
+                "LightMode" = "ForwardBase"
+            }
+
+            Blend SrcAlpha OneMinusSrcAlpha
+
+            Stencil
+            {
+                Ref 50
+                Comp Equal
+                Pass Zero
+            }
+
+            CGPROGRAM
+            #pragma vertex ELRaycastBaseVertex
+            #pragma fragment ELRaycastFragment
+            #pragma multi_compile_fwdbase
+            #pragma multi_compile_fog
+            #pragma target 4.0
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "FORWARDADD_BACK"
+            Tags
+            {
+                "LightMode" = "ForwardAdd"
+            }
+
+            Blend SrcAlpha One
+            ZWrite Off
+            Cull Front
+
+            Stencil
+            {
+                Ref 50
+                Comp Always
+                Pass Replace
+                ZFail replace
+            }
+
+            CGPROGRAM
+            #pragma vertex ELRaycastBaseVertex
+            #pragma fragment ELRaycastFragment
+            #pragma multi_compile_fwdadd_fullshadows
+            #pragma multi_compile_fog
+            #pragma target 4.0
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "FORWARDADD_FRONT"
+            Tags
+            {
+                "LightMode" = "ForwardAdd"
+            }
+
+            Blend SrcAlpha One
+            ZWrite Off
+
+            Stencil
+            {
+                Ref 50
+                Comp equal
+                Pass zero
+            }
+
+            CGPROGRAM
+            #pragma vertex ELRaycastBaseVertex
+            #pragma fragment ELRaycastFragment
+            #pragma multi_compile_fwdadd_fullshadows
+            #pragma multi_compile_fog
+            #pragma target 4.0
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "SHADOWCASTER"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+
+            ZWrite On
+            ZTest LEqual
+
+            CGPROGRAM
+            #pragma vertex ELRaycastBaseVertex
+            #pragma fragment ELRaycastShadowCasterFragment
+            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+            #pragma multi_compile_shadowcaster
+            #pragma target 4.0
+            ENDCG
+        }
+    }
+
+    Fallback "None"
+}
