@@ -8,6 +8,7 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardCore.cginc"
 #include "ELUnityUtilities.cginc"
+#include "ELRaycastBaseInputOutput.cginc"
 
 
 // Wraps `UNITY_TRANSFER_SHADOW` and `UNITY_LIGHT_ATTENUATION` for abusing to use in fragment shader.
