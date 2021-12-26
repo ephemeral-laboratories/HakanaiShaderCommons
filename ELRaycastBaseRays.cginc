@@ -14,12 +14,12 @@ struct ELRay
     float3 origin;
 
     /**
-     * Direction of the ray
+     * Direction of the ray.
      */
     float3 direction;
 
     /**
-     * Distance from the origin of the tip of the ray, in units of the length of `dir`.
+     * Distance from the origin of the tip of the ray, in units of the length of `direction`.
      */
     float reach;
 
