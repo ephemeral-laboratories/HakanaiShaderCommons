@@ -6,6 +6,28 @@ It is designed to be pulled into other projects as a git submodule.
 
 [Examples of usage can be found here.](https://github.com/ephemeral-laboratories/HakanaiShaderCommonsExamples)
 
+## Getting Started
+
+From Unity's Package Manager pane, click the plus sign and choose
+"Add package from git URL..."
+
+Enter the following URL:
+
+**https<span>:</span>//github.com/ephemeral-laboratories/HakanaiShaderCommons.git#v<var>X.Y.Z</var>**
+
+Replace _X.Y.Z_ with the version you want to use, hopefully the latest.
+
+Usage in Unity:
+
+* **Assets→Create→Shader→EL Raycast Shader**, **Assets→Create→Shader→EL Raymarch Shader**
+  menu items will create a new shader of the respective type from a basic
+  template.
+* Right-click your new shader, **Create→Material**
+* **File→New Scene**
+* **GameObject→3D Object→Cube**
+* Assign your material to the cube
+* You should now see a sphere. Edit your shader to make something more interesting. :)
+
 ## A Quick Tour
 
 Functions are generally prefixed with `EL` to avoid any future clashes

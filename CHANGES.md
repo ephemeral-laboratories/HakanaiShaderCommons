@@ -1,4 +1,8 @@
-﻿v0.3.0
+﻿v0.3.1
+
+* Fixed a bug that cropped up with certain import ordering
+
+v0.3.0
 
 * Added lightmap support
 * Fixed where SH was being calculated

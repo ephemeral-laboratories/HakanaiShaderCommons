@@ -1,6 +1,8 @@
 #ifndef EL_RAYCAST_BASE_STRUCTURES_CGINC_
 #define EL_RAYCAST_BASE_STRUCTURES_CGINC_
 
+#include "UnityCG.cginc"
+
 /**
  * Vertex input structure.
  */
@@ -82,7 +84,7 @@ struct ELRaycastBaseFragmentInput
      */    
     float4 lightMapUV : TEXCOORD4;
 
-#if !defined(LIGHTMAP_ON) && UNITY_SHOULD_SAMPLE_SH
+#if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
     /**
      * Spherical harmonics.
      */
