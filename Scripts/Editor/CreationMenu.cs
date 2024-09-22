@@ -17,7 +17,9 @@ namespace HakanaiShaderCommons
         [MenuItem("Assets/Create/Shader/EL Raymarch Shader", false, 101)]
         public static void CreateRaymarchShader()
         {
-            // TODO
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(
+                "Packages/garden.ephemeral.shader.commons/ShaderTemplates/RaymarchShader.txt",
+                "New Raymarch Shader.shader");
         }
 
         private static string GetSelectedAssetFolder()

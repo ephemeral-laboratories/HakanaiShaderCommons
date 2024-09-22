@@ -1,4 +1,8 @@
-﻿v0.3.1
+﻿v0.3.2
+
+* Wired up New Raymarch Shader action
+
+v0.3.1
 
 * Fixed a bug that cropped up with certain import ordering
 
